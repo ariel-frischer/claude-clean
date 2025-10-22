@@ -1,7 +1,7 @@
 .PHONY: help build install setup-alias run run-verbose test clean fmt vet deps all
 
 # Binary name
-BINARY_NAME=claude-clean-output
+BINARY_NAME=claude-clean
 
 # Default target
 help:
@@ -48,24 +48,49 @@ install: build
 	else \
 		echo "Skipped alias setup. You can run 'make setup-alias' later."; \
 		echo ""; \
-		echo "Or manually add this to your ~/.bashrc or ~/.zshrc:"; \
+		echo "Or manually add ONE of these to your ~/.bashrc or ~/.zshrc:"; \
 		echo ""; \
+		echo "Option 1 - OAuth (Claude Pro/Team plan, FREE):"; \
+		echo "  # Setting ANTHROPIC_API_KEY=\"\" forces OAuth, ignoring any API key"; \
 		echo "cclean() {"; \
-		echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output"; \
+		echo "  ANTHROPIC_API_KEY=\"\" claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean"; \
+		echo "}"; \
+		echo ""; \
+		echo "Option 2 - API Key (pay-per-use):"; \
+		echo "  # Uses configured API key, you'll be billed per request"; \
+		echo "cclean() {"; \
+		echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean"; \
 		echo "}"; \
 	fi
 
 # Setup shell alias (can be run separately)
 setup-alias:
 	@echo "Setting up 'cclean' alias..."
-	@if [ -n "$$ZSH_VERSION" ] || [ -f ~/.zshrc ]; then \
+	@echo ""
+	@echo "Choose authentication method:"
+	@echo "  [1] OAuth (use your Claude Pro/Team plan) - FREE, no API costs"
+	@echo "      Sets ANTHROPIC_API_KEY=\"\" to force OAuth and use your plan"
+	@echo ""
+	@echo "  [2] API Key (pay-per-use) - charges to your Anthropic API account"
+	@echo "      Uses configured API key, billed per request"
+	@echo ""
+	@read -p "Enter choice [1/2]: " -n 1 -r AUTH_CHOICE; \
+	echo; \
+	if [ "$$AUTH_CHOICE" = "1" ]; then \
+		ALIAS_CMD='ANTHROPIC_API_KEY="" claude -p "$$*" --verbose --output-format stream-json | claude-clean'; \
+		echo "✓ Using OAuth (sets ANTHROPIC_API_KEY=\"\" to force plan usage)"; \
+	else \
+		ALIAS_CMD='claude -p "$$*" --verbose --output-format stream-json | claude-clean'; \
+		echo "✓ Using API Key (pay-per-use billing)"; \
+	fi; \
+	if [ -n "$$ZSH_VERSION" ] || [ -f ~/.zshrc ]; then \
 		if grep -q "cclean()" ~/.zshrc 2>/dev/null; then \
 			echo "✓ Alias 'cclean' already exists in ~/.zshrc - not adding again"; \
 		else \
 			echo "" >> ~/.zshrc; \
-			echo "# Claude Clean Output alias" >> ~/.zshrc; \
+			echo "# Claude Clean alias" >> ~/.zshrc; \
 			echo "cclean() {" >> ~/.zshrc; \
-			echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output" >> ~/.zshrc; \
+			echo "  $$ALIAS_CMD" >> ~/.zshrc; \
 			echo "}" >> ~/.zshrc; \
 			echo "✓ Added alias to ~/.zshrc"; \
 			echo "Run: source ~/.zshrc"; \
@@ -75,9 +100,9 @@ setup-alias:
 			echo "✓ Alias 'cclean' already exists in ~/.bashrc - not adding again"; \
 		else \
 			echo "" >> ~/.bashrc; \
-			echo "# Claude Clean Output alias" >> ~/.bashrc; \
+			echo "# Claude Clean alias" >> ~/.bashrc; \
 			echo "cclean() {" >> ~/.bashrc; \
-			echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output" >> ~/.bashrc; \
+			echo "  $$ALIAS_CMD" >> ~/.bashrc; \
 			echo "}" >> ~/.bashrc; \
 			echo "✓ Added alias to ~/.bashrc"; \
 			echo "Run: source ~/.bashrc"; \

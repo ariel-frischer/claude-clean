@@ -1,4 +1,4 @@
-# Claude Clean Output
+# Claude Clean
 
 A beautiful terminal parser for Claude Code's streaming JSON output. Transforms the raw stream-json log format into clean, colorful, and readable terminal output.
 
@@ -10,7 +10,7 @@ When you run Claude Code with verbose stream-json output, you get raw JSON logs 
 claude-code -p "what is 2+2" --verbose --output-format stream-json
 ```
 
-This produces a stream of JSON objects that are difficult to read in real-time. **Claude Clean Output** parses this stream and transforms it into beautiful, human-readable terminal output with colors, boxes, and proper formatting.
+This produces a stream of JSON objects that are difficult to read in real-time. **Claude Clean** parses this stream and transforms it into beautiful, human-readable terminal output with colors, boxes, and proper formatting.
 
 ### Before (Raw JSON stream):
 
@@ -20,7 +20,7 @@ This produces a stream of JSON objects that are difficult to read in real-time. 
 {"type":"assistant","message":{"model":"claude-sonnet-4-5-20250929","id":"msg_01Rws28Xg2tBY3A5fNdrk6Mf","type":"message","role":"assistant","content":[{"type":"tool_use","id":"toolu_01VdNvyRGtzZvniXJGQQjvEP","name":"Glob","input":{"pattern":"**/*.go"}}],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":3,"cache_creation_input_tokens":3117,"cache_read_input_tokens":14723,"cache_creation":{"ephemeral_5m_input_tokens":3117,"ephemeral_1h_input_tokens":0},"output_tokens":1,"service_tier":"standard"}},"parent_tool_use_id":null,"session_id":"6170607e-7232-407c-82c3-7fc983d60064","uuid":"e59b712a-7489-4166-80b9-13978fd2a6ea"}
 ```
 
-### After (With Claude Clean Output):
+### After (With Claude Clean):
 
 ```
 ┌─ SYSTEM [init] (line 1)
@@ -61,7 +61,7 @@ This is the type of output this tool handles best: verbose stream-json logs from
 ## Installation
 
 ```bash
-go build -o claude-clean-output
+go build -o claude-clean
 ```
 
 Or use the Makefile:
@@ -73,13 +73,29 @@ make install  # Builds and installs to ~/.local/bin with optional alias setup
 
 For the best experience, add a shell alias so you can use `cclean "your prompt"` instead of typing the full command every time.
 
+**Important:** Choose your authentication method:
+- **Option 1 (Recommended):** OAuth - Uses your Claude Pro/Team plan (FREE, no API costs)
+  - Sets `ANTHROPIC_API_KEY=""` which forces Claude CLI to use OAuth and your plan instead of API billing
+- **Option 2:** API Key - Pay-per-use charges to your Anthropic API account
+  - Uses your configured API key, you'll be billed per request
+
 ### Bash or Zsh
 
-Add to your `~/.bashrc` or `~/.zshrc`:
+Add **ONE** of these to your `~/.bashrc` or `~/.zshrc`:
 
+**Option 1 - OAuth (Claude Pro/Team plan, FREE):**
 ```bash
 cclean() {
-  claude -p "$*" --verbose --output-format stream-json | claude-clean-output
+  # Setting ANTHROPIC_API_KEY="" forces OAuth, ignoring any API key
+  ANTHROPIC_API_KEY="" claude -p "$*" --verbose --output-format stream-json | claude-clean
+}
+```
+
+**Option 2 - API Key (pay-per-use):**
+```bash
+cclean() {
+  # Uses configured API key, you'll be billed per request
+  claude -p "$*" --verbose --output-format stream-json | claude-clean
 }
 ```
 
@@ -90,11 +106,21 @@ source ~/.bashrc  # or source ~/.zshrc
 
 ### Fish
 
-Add to your `~/.config/fish/config.fish`:
+Add **ONE** of these to your `~/.config/fish/config.fish`:
 
+**Option 1 - OAuth (Claude Pro/Team plan, FREE):**
 ```fish
 function cclean
-  claude -p $argv --verbose --output-format stream-json | claude-clean-output
+  # Setting ANTHROPIC_API_KEY="" forces OAuth, ignoring any API key
+  env ANTHROPIC_API_KEY="" claude -p $argv --verbose --output-format stream-json | claude-clean
+end
+```
+
+**Option 2 - API Key (pay-per-use):**
+```fish
+function cclean
+  # Uses configured API key, you'll be billed per request
+  claude -p $argv --verbose --output-format stream-json | claude-clean
 end
 ```
 
@@ -116,35 +142,35 @@ Much cleaner than typing the full command every time!
 
 ### Live streaming with Claude Code (recommended):
 ```bash
-claude -p "what is 2+2" --verbose --output-format stream-json | ./claude-clean-output
+claude -p "what is 2+2" --verbose --output-format stream-json | ./claude-clean
 ```
 
 ### From a log file:
 ```bash
-./claude-clean-output mocks/claude-stream-json-simple.jsonl
+./claude-clean mocks/claude-stream-json-simple.jsonl
 ```
 
 ### From stdin (pipe):
 ```bash
-cat mocks/claude-stream-json-simple.jsonl | ./claude-clean-output
+cat mocks/claude-stream-json-simple.jsonl | ./claude-clean
 ```
 
 ### Using different output styles:
 ```bash
 # Default style (boxed format with colors)
-./claude-clean-output log.jsonl
+./claude-clean log.jsonl
 
 # Compact style (minimal single-line format)
-./claude-clean-output -s compact log.jsonl
+./claude-clean -s compact log.jsonl
 
 # Minimal style (simple indented format, no boxes)
-./claude-clean-output -s minimal log.jsonl
+./claude-clean -s minimal log.jsonl
 
 # Plain style (no colors, no boxes)
-./claude-clean-output -s plain log.jsonl
+./claude-clean -s plain log.jsonl
 
 # Verbose output with compact style
-./claude-clean-output -v -s compact log.jsonl
+./claude-clean -v -s compact log.jsonl
 ```
 
 ## Output Styles
