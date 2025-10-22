@@ -60,6 +60,42 @@ This is the type of output this tool handles best: verbose stream-json logs from
 
 ## Installation
 
+### Option 1: Download pre-built binary (recommended)
+
+Download the latest release for your platform from the [releases page](https://github.com/ariel-frischer/claude-code-clean-output/releases):
+
+```bash
+# Linux (x86_64)
+curl -L -o claude-clean https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-linux-amd64
+chmod +x claude-clean
+sudo mv claude-clean /usr/local/bin/
+
+# macOS (Intel)
+curl -L -o claude-clean https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-darwin-amd64
+chmod +x claude-clean
+sudo mv claude-clean /usr/local/bin/
+
+# macOS (Apple Silicon)
+curl -L -o claude-clean https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-darwin-arm64
+chmod +x claude-clean
+sudo mv claude-clean /usr/local/bin/
+
+# Windows (download manually from releases page)
+# Or use PowerShell:
+# Invoke-WebRequest -Uri "https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-windows-amd64.exe" -OutFile "claude-clean.exe"
+```
+
+**Verify the download (recommended):**
+```bash
+# Download checksums
+curl -L -o SHA256SUMS https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/SHA256SUMS
+
+# Verify (Linux/macOS)
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+### Option 2: Build from source
+
 ```bash
 go build -o claude-clean
 ```
