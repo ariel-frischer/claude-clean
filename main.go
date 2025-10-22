@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
@@ -176,6 +177,19 @@ func displayMessage(msg *StreamMessage, lineNum int) {
 	default: // StyleDefault
 		displayMessageDefault(msg, lineNum)
 	}
+}
+
+// stripSystemReminders removes <system-reminder>...</system-reminder> tags from content
+func stripSystemReminders(content string) string {
+	// Use regex to remove system-reminder tags and their content
+	re := regexp.MustCompile(`(?s)<system-reminder>.*?</system-reminder>`)
+	result := re.ReplaceAllString(content, "")
+
+	// Clean up any resulting multiple blank lines
+	result = regexp.MustCompile(`\n\n\n+`).ReplaceAllString(result, "\n\n")
+
+	// Trim leading/trailing whitespace
+	return strings.TrimSpace(result)
 }
 
 func displayMessageDefault(msg *StreamMessage, lineNum int) {
@@ -373,6 +387,11 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 			contentStr = fmt.Sprintf("%v", v)
 		}
 
+		// Strip system reminders in non-verbose mode
+		if !*verbose {
+			contentStr = stripSystemReminders(contentStr)
+		}
+
 		red.Print("│ ")
 		white.Println(contentStr)
 		red.Println("└─")
@@ -391,6 +410,11 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 			contentStr = v
 		default:
 			contentStr = fmt.Sprintf("%v", v)
+		}
+
+		// Strip system reminders in non-verbose mode
+		if !*verbose {
+			contentStr = stripSystemReminders(contentStr)
 		}
 
 		if contentStr == "" {
@@ -660,6 +684,11 @@ func displayToolResultCompact(block *ContentBlock, lineNum int) {
 		contentStr = fmt.Sprintf("%v", v)
 	}
 
+	// Strip system reminders in non-verbose mode
+	if !*verbose {
+		contentStr = stripSystemReminders(contentStr)
+	}
+
 	// Compact output - single line summary
 	contentStr = strings.ReplaceAll(contentStr, "\n", " ")
 	if contentStr == "" {
@@ -873,6 +902,11 @@ func displayToolResultMinimal(block *ContentBlock, lineNum int) {
 			contentStr = fmt.Sprintf("%v", v)
 		}
 
+		// Strip system reminders in non-verbose mode
+		if !*verbose {
+			contentStr = stripSystemReminders(contentStr)
+		}
+
 		white.Printf("  %s\n", contentStr)
 	} else {
 		boldMagenta.Printf("TOOL RESULT")
@@ -888,6 +922,11 @@ func displayToolResultMinimal(block *ContentBlock, lineNum int) {
 			contentStr = v
 		default:
 			contentStr = fmt.Sprintf("%v", v)
+		}
+
+		// Strip system reminders in non-verbose mode
+		if !*verbose {
+			contentStr = stripSystemReminders(contentStr)
 		}
 
 		if contentStr == "" {
@@ -1165,6 +1204,11 @@ func displayToolResultPlain(block *ContentBlock, lineNum int) {
 			contentStr = fmt.Sprintf("%v", v)
 		}
 
+		// Strip system reminders in non-verbose mode
+		if !*verbose {
+			contentStr = stripSystemReminders(contentStr)
+		}
+
 		fmt.Printf("  %s\n", contentStr)
 	} else {
 		fmt.Printf("TOOL RESULT (line %d)\n", lineNum)
@@ -1179,6 +1223,11 @@ func displayToolResultPlain(block *ContentBlock, lineNum int) {
 			contentStr = v
 		default:
 			contentStr = fmt.Sprintf("%v", v)
+		}
+
+		// Strip system reminders in non-verbose mode
+		if !*verbose {
+			contentStr = stripSystemReminders(contentStr)
 		}
 
 		if contentStr == "" {
