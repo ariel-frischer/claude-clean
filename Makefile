@@ -51,7 +51,7 @@ install: build
 		echo "Or manually add this to your ~/.bashrc or ~/.zshrc:"; \
 		echo ""; \
 		echo "cclean() {"; \
-		echo "  claude-code -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output"; \
+		echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output"; \
 		echo "}"; \
 	fi
 
@@ -59,21 +59,29 @@ install: build
 setup-alias:
 	@echo "Setting up 'cclean' alias..."
 	@if [ -n "$$ZSH_VERSION" ] || [ -f ~/.zshrc ]; then \
-		echo "" >> ~/.zshrc; \
-		echo "# Claude Clean Output alias" >> ~/.zshrc; \
-		echo "cclean() {" >> ~/.zshrc; \
-		echo "  claude-code -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output" >> ~/.zshrc; \
-		echo "}" >> ~/.zshrc; \
-		echo "✓ Added alias to ~/.zshrc"; \
-		echo "Run: source ~/.zshrc"; \
+		if grep -q "cclean()" ~/.zshrc 2>/dev/null; then \
+			echo "✓ Alias 'cclean' already exists in ~/.zshrc - not adding again"; \
+		else \
+			echo "" >> ~/.zshrc; \
+			echo "# Claude Clean Output alias" >> ~/.zshrc; \
+			echo "cclean() {" >> ~/.zshrc; \
+			echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output" >> ~/.zshrc; \
+			echo "}" >> ~/.zshrc; \
+			echo "✓ Added alias to ~/.zshrc"; \
+			echo "Run: source ~/.zshrc"; \
+		fi \
 	elif [ -f ~/.bashrc ]; then \
-		echo "" >> ~/.bashrc; \
-		echo "# Claude Clean Output alias" >> ~/.bashrc; \
-		echo "cclean() {" >> ~/.bashrc; \
-		echo "  claude-code -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output" >> ~/.bashrc; \
-		echo "}" >> ~/.bashrc; \
-		echo "✓ Added alias to ~/.bashrc"; \
-		echo "Run: source ~/.bashrc"; \
+		if grep -q "cclean()" ~/.bashrc 2>/dev/null; then \
+			echo "✓ Alias 'cclean' already exists in ~/.bashrc - not adding again"; \
+		else \
+			echo "" >> ~/.bashrc; \
+			echo "# Claude Clean Output alias" >> ~/.bashrc; \
+			echo "cclean() {" >> ~/.bashrc; \
+			echo "  claude -p \"\$$*\" --verbose --output-format stream-json | claude-clean-output" >> ~/.bashrc; \
+			echo "}" >> ~/.bashrc; \
+			echo "✓ Added alias to ~/.bashrc"; \
+			echo "Run: source ~/.bashrc"; \
+		fi \
 	else \
 		echo "Could not detect shell config file."; \
 		echo "Please manually add the alias to your shell config."; \
@@ -82,19 +90,19 @@ setup-alias:
 # Run with sample data
 run: build
 	@echo "Running $(BINARY_NAME) with sample data..."
-	@if [ -f mocks/claude-stream-json-simple.log ]; then \
-		./$(BINARY_NAME) mocks/claude-stream-json-simple.log; \
+	@if [ -f mocks/claude-stream-json-simple.jsonl ]; then \
+		./$(BINARY_NAME) mocks/claude-stream-json-simple.jsonl; \
 	else \
-		echo "No sample data found. Create mocks/claude-stream-json-simple.log or pipe data to ./$(BINARY_NAME)"; \
+		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BINARY_NAME)"; \
 	fi
 
 # Run with verbose output
 run-verbose: build
 	@echo "Running $(BINARY_NAME) with verbose output..."
-	@if [ -f mocks/claude-stream-json-simple.log ]; then \
-		./$(BINARY_NAME) -v mocks/claude-stream-json-simple.log; \
+	@if [ -f mocks/claude-stream-json-simple.jsonl ]; then \
+		./$(BINARY_NAME) -v mocks/claude-stream-json-simple.jsonl; \
 	else \
-		echo "No sample data found. Create mocks/claude-stream-json-simple.log or pipe data to ./$(BINARY_NAME)"; \
+		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BINARY_NAME)"; \
 	fi
 
 # Run tests

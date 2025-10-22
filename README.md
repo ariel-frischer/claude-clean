@@ -79,7 +79,7 @@ Add to your `~/.bashrc` or `~/.zshrc`:
 
 ```bash
 cclean() {
-  claude-code -p "$*" --verbose --output-format stream-json | claude-clean-output
+  claude -p "$*" --verbose --output-format stream-json | claude-clean-output
 }
 ```
 
@@ -94,7 +94,7 @@ Add to your `~/.config/fish/config.fish`:
 
 ```fish
 function cclean
-  claude-code -p $argv --verbose --output-format stream-json | claude-clean-output
+  claude -p $argv --verbose --output-format stream-json | claude-clean-output
 end
 ```
 
@@ -116,7 +116,7 @@ Much cleaner than typing the full command every time!
 
 ### Live streaming with Claude Code (recommended):
 ```bash
-claude-code -p "what is 2+2" --verbose --output-format stream-json | ./claude-clean-output
+claude -p "what is 2+2" --verbose --output-format stream-json | ./claude-clean-output
 ```
 
 ### From a log file:
