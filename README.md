@@ -300,6 +300,9 @@ ASSISTANT (line 2)
 ## Dependencies
 
 - [github.com/fatih/color](https://github.com/fatih/color) - Terminal color output
+- [github.com/mattn/go-colorable](https://github.com/mattn/go-colorable) - Cross-platform colored terminal output (indirect)
+- [github.com/mattn/go-isatty](https://github.com/mattn/go-isatty) - TTY detection (indirect)
+- [golang.org/x/sys](https://golang.org/x/sys) - System call support (indirect)
 
 ## License
 
