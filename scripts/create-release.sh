@@ -41,12 +41,18 @@ else
     git tag -a "${VERSION}" -m "Release ${VERSION}"
 fi
 
-# Check if we need to push the tag
-if git ls-remote --tags origin | grep -q "${VERSION}"; then
-    echo "Tag ${VERSION} already exists on remote"
+# Detect GitHub remote
+GITHUB_REMOTE="origin"
+if git remote -v | grep -q "github.com.*github"; then
+    GITHUB_REMOTE="github"
+fi
+
+# Check if we need to push the tag to GitHub
+if git ls-remote --tags "${GITHUB_REMOTE}" | grep -q "${VERSION}"; then
+    echo "Tag ${VERSION} already exists on GitHub remote (${GITHUB_REMOTE})"
 else
-    echo "Pushing tag ${VERSION} to remote..."
-    git push origin "${VERSION}"
+    echo "Pushing tag ${VERSION} to GitHub remote (${GITHUB_REMOTE})..."
+    git push "${GITHUB_REMOTE}" "${VERSION}"
 fi
 
 # Create the release
