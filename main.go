@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -22,6 +23,16 @@ type StreamMessage struct {
 	Tools            []string        `json:"tools,omitempty"`
 	Model            string          `json:"model,omitempty"`
 	ClaudeCodeVersion string         `json:"claude_code_version,omitempty"`
+	// Result message fields
+	IsError          bool                   `json:"is_error,omitempty"`
+	DurationMS       int                    `json:"duration_ms,omitempty"`
+	DurationAPIMS    int                    `json:"duration_api_ms,omitempty"`
+	NumTurns         int                    `json:"num_turns,omitempty"`
+	Result           string                 `json:"result,omitempty"`
+	TotalCostUSD     float64                `json:"total_cost_usd,omitempty"`
+	Usage            *Usage                 `json:"usage,omitempty"`
+	ModelUsage       map[string]interface{} `json:"modelUsage,omitempty"`
+	PermissionDenials []interface{}         `json:"permission_denials,omitempty"`
 }
 
 type MessageContent struct {
@@ -67,20 +78,44 @@ var (
 	boldYellow  = color.New(color.FgYellow, color.Bold)
 	boldRed     = color.New(color.FgRed, color.Bold)
 	boldMagenta = color.New(color.FgMagenta, color.Bold)
+	boldBlue    = color.New(color.FgBlue, color.Bold)
 	cyan        = color.New(color.FgCyan)
 	green       = color.New(color.FgGreen)
 	yellow      = color.New(color.FgYellow)
 	red         = color.New(color.FgRed)
+	blue        = color.New(color.FgBlue)
 	gray        = color.New(color.FgHiBlack)
 	white       = color.New(color.FgWhite)
 )
 
+// Command-line flags
+var (
+	verbose = flag.Bool("v", false, "Show verbose output (tool IDs, token usage)")
+	help    = flag.Bool("h", false, "Show help message")
+)
+
 func main() {
+	flag.Parse()
+
+	if *help {
+		fmt.Println("Usage: claude-clean-output [OPTIONS] [FILE]")
+		fmt.Println("\nParse and beautify Claude Code's streaming JSON output")
+		fmt.Println("\nOptions:")
+		fmt.Println("  -v    Show verbose output (tool IDs, token usage)")
+		fmt.Println("  -h    Show this help message")
+		fmt.Println("\nExamples:")
+		fmt.Println("  claude-clean-output log.jsonl")
+		fmt.Println("  cat log.jsonl | claude-clean-output")
+		fmt.Println("  claude-clean-output -v log.jsonl  # Show detailed info")
+		os.Exit(0)
+	}
+
 	var reader io.Reader
 
 	// Check if we have a file argument or should read from stdin
-	if len(os.Args) > 1 {
-		file, err := os.Open(os.Args[1])
+	args := flag.Args()
+	if len(args) > 0 {
+		file, err := os.Open(args[0])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
 			os.Exit(1)
@@ -93,6 +128,8 @@ func main() {
 
 	scanner := bufio.NewScanner(reader)
 	lineNum := 0
+	var lastAssistantMsg *StreamMessage
+	var lastAssistantLine int
 
 	for scanner.Scan() {
 		lineNum++
@@ -110,8 +147,43 @@ func main() {
 			continue
 		}
 
-		// Format and display the message
-		displayMessage(&msg, lineNum)
+		// Handle duplicate detection between assistant and result messages
+		if msg.Type == "result" && lastAssistantMsg != nil && !*verbose {
+			// Check if the result message contains the same content as the last assistant message
+			if msg.Result != "" && lastAssistantMsg.Message != nil && len(lastAssistantMsg.Message.Content) > 0 {
+				// Get the last text from assistant message
+				for _, block := range lastAssistantMsg.Message.Content {
+					if block.Type == "text" && block.Text == msg.Result {
+						// Skip the duplicate assistant message
+						lastAssistantMsg = nil
+						break
+					}
+				}
+			}
+			// Display the buffered assistant message if it wasn't a duplicate
+			if lastAssistantMsg != nil {
+				displayAssistantMessage(lastAssistantMsg, lastAssistantLine)
+				lastAssistantMsg = nil
+			}
+		} else if lastAssistantMsg != nil {
+			// Display the buffered assistant message
+			displayAssistantMessage(lastAssistantMsg, lastAssistantLine)
+			lastAssistantMsg = nil
+		}
+
+		// Buffer assistant messages to check for duplicates with result
+		if msg.Type == "assistant" && !*verbose {
+			lastAssistantMsg = &msg
+			lastAssistantLine = lineNum
+		} else {
+			// Display other message types immediately
+			displayMessage(&msg, lineNum)
+		}
+	}
+
+	// Display any remaining buffered assistant message
+	if lastAssistantMsg != nil {
+		displayAssistantMessage(lastAssistantMsg, lastAssistantLine)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -128,6 +200,8 @@ func displayMessage(msg *StreamMessage, lineNum int) {
 		displayAssistantMessage(msg, lineNum)
 	case "user":
 		displayUserMessage(msg, lineNum)
+	case "result":
+		displayResultMessage(msg, lineNum)
 	default:
 		gray.Printf("│ [Line %d] Unknown message type: %s\n", lineNum, msg.Type)
 	}
@@ -193,7 +267,7 @@ func displayAssistantMessage(msg *StreamMessage, lineNum int) {
 			white.Println(text)
 		}
 
-		if msg.Message.Usage != nil {
+		if *verbose && msg.Message.Usage != nil {
 			displayUsage(msg.Message.Usage)
 		}
 		green.Println("└─")
@@ -209,7 +283,10 @@ func displayToolUse(tool *ContentBlock, lineNum int) {
 	boldYellow.Print("┌─ ")
 	boldYellow.Printf("TOOL: %s", tool.Name)
 	gray.Printf(" (line %d)\n", lineNum)
-	yellow.Printf("│ ID: %s\n", tool.ID)
+
+	if *verbose {
+		yellow.Printf("│ ID: %s\n", tool.ID)
+	}
 
 	if tool.Input != nil {
 		yellow.Println("│ Input:")
@@ -219,14 +296,21 @@ func displayToolUse(tool *ContentBlock, lineNum int) {
 
 			switch v := value.(type) {
 			case string:
-				// Truncate long strings
-				if len(v) > 100 {
-					white.Printf("%s...\n", v[:100])
+				// Show more context for strings - first 200 + last 100 chars
+				if len(v) > 300 {
+					white.Printf("%s ... (%d chars omitted) ... %s\n",
+						v[:200], len(v)-300, v[len(v)-100:])
 				} else {
 					white.Println(v)
 				}
 			case []interface{}:
-				white.Printf("[%d items]\n", len(v))
+				// Special handling for todos array in TodoWrite tool
+				if tool.Name == "TodoWrite" && key == "todos" {
+					white.Println()
+					displayTodos(v)
+				} else {
+					white.Printf("[%d items]\n", len(v))
+				}
 			case map[string]interface{}:
 				white.Println("{...}")
 			default:
@@ -236,6 +320,36 @@ func displayToolUse(tool *ContentBlock, lineNum int) {
 	}
 
 	yellow.Println("└─")
+}
+
+func displayTodos(todos []interface{}) {
+	for i, todo := range todos {
+		todoMap, ok := todo.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		content, _ := todoMap["content"].(string)
+		status, _ := todoMap["status"].(string)
+
+		// Format status with color
+		var statusIcon string
+		switch status {
+		case "completed":
+			statusIcon = green.Sprint("✓")
+		case "in_progress":
+			statusIcon = yellow.Sprint("→")
+		case "pending":
+			statusIcon = gray.Sprint("○")
+		default:
+			statusIcon = gray.Sprint("-")
+		}
+
+		yellow.Printf("│     %s %s\n", statusIcon, content)
+		if i < len(todos)-1 {
+			// Continue without extra line between todos
+		}
+	}
 }
 
 func displayUserMessage(msg *StreamMessage, lineNum int) {
@@ -260,7 +374,10 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 		boldRed.Print("┌─ ")
 		boldRed.Print("TOOL RESULT ERROR")
 		gray.Printf(" (line %d)\n", lineNum)
-		red.Printf("│ Tool ID: %s\n", block.ToolUseID)
+
+		if *verbose {
+			red.Printf("│ Tool ID: %s\n", block.ToolUseID)
+		}
 
 		contentStr := ""
 		switch v := block.Content.(type) {
@@ -277,7 +394,10 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 		boldMagenta.Print("┌─ ")
 		boldMagenta.Print("TOOL RESULT")
 		gray.Printf(" (line %d)\n", lineNum)
-		gray.Printf("│ Tool ID: %s\n", block.ToolUseID)
+
+		if *verbose {
+			gray.Printf("│ Tool ID: %s\n", block.ToolUseID)
+		}
 
 		contentStr := ""
 		switch v := block.Content.(type) {
@@ -290,22 +410,122 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 		if contentStr == "" {
 			gray.Println("│ (no output)")
 		} else {
-			// Truncate very long output
+			// Show first 20 + last 20 lines for long output
 			lines := strings.Split(contentStr, "\n")
-			maxLines := 10
+			firstLines := 20
+			lastLines := 20
+			totalLines := len(lines)
 
-			for i, line := range lines {
-				if i >= maxLines {
-					gray.Printf("│ ... (%d more lines)\n", len(lines)-maxLines)
-					break
+			if totalLines <= firstLines+lastLines {
+				// Show all lines if content is short enough
+				for _, line := range lines {
+					gray.Print("│ ")
+					white.Println(line)
 				}
-				gray.Print("│ ")
-				white.Println(line)
+			} else {
+				// Show first 20 lines
+				for i := 0; i < firstLines; i++ {
+					gray.Print("│ ")
+					white.Println(lines[i])
+				}
+
+				// Show summary of middle content
+				gray.Printf("│ ... (%d more lines) ...\n", totalLines-firstLines-lastLines)
+
+				// Show last 20 lines
+				for i := totalLines - lastLines; i < totalLines; i++ {
+					gray.Print("│ ")
+					white.Println(lines[i])
+				}
 			}
 		}
 
 		gray.Println("└─")
 	}
+}
+
+func displayResultMessage(msg *StreamMessage, lineNum int) {
+	if msg.IsError {
+		boldRed.Print("┌─ ")
+		boldRed.Print("RESULT: ERROR")
+	} else {
+		boldBlue.Print("┌─ ")
+		boldBlue.Print("RESULT: SUCCESS")
+	}
+	gray.Printf(" (line %d)\n", lineNum)
+
+	// Show summary stats
+	if msg.NumTurns > 0 {
+		blue.Printf("│ Turns: %d\n", msg.NumTurns)
+	}
+	if msg.DurationMS > 0 {
+		blue.Printf("│ Duration: %.2fs", float64(msg.DurationMS)/1000.0)
+		if msg.DurationAPIMS > 0 {
+			blue.Printf(" (API: %.2fs)", float64(msg.DurationAPIMS)/1000.0)
+		}
+		blue.Println()
+	}
+	if msg.TotalCostUSD > 0 {
+		blue.Printf("│ Cost: $%.4f\n", msg.TotalCostUSD)
+	}
+
+	// Show detailed token usage
+	if msg.Usage != nil {
+		blue.Println("│")
+		blue.Print("│ ")
+		blue.Printf("Tokens: in=%d out=%d", msg.Usage.InputTokens, msg.Usage.OutputTokens)
+		if msg.Usage.CacheReadInputTokens > 0 {
+			blue.Printf(" cache_read=%d", msg.Usage.CacheReadInputTokens)
+		}
+		if msg.Usage.CacheCreationInputTokens > 0 {
+			blue.Printf(" cache_create=%d", msg.Usage.CacheCreationInputTokens)
+		}
+		blue.Println()
+	}
+
+	// Show per-model usage in verbose mode
+	if *verbose && msg.ModelUsage != nil && len(msg.ModelUsage) > 0 {
+		blue.Println("│")
+		blue.Println("│ Model Usage:")
+		for model, usageData := range msg.ModelUsage {
+			blue.Printf("│   %s:\n", model)
+			if usageMap, ok := usageData.(map[string]interface{}); ok {
+				if inputTokens, ok := usageMap["inputTokens"].(float64); ok {
+					blue.Printf("│     Input: %.0f tokens\n", inputTokens)
+				}
+				if outputTokens, ok := usageMap["outputTokens"].(float64); ok {
+					blue.Printf("│     Output: %.0f tokens\n", outputTokens)
+				}
+				if cost, ok := usageMap["costUSD"].(float64); ok {
+					blue.Printf("│     Cost: $%.4f\n", cost)
+				}
+			}
+		}
+	}
+
+	// Show permission denials if present
+	if len(msg.PermissionDenials) > 0 {
+		blue.Println("│")
+		red.Printf("│ Permission Denials: %d\n", len(msg.PermissionDenials))
+		if *verbose {
+			for i, denial := range msg.PermissionDenials {
+				red.Printf("│   [%d] %v\n", i+1, denial)
+			}
+		}
+	}
+
+	// Show result content if present
+	if msg.Result != "" {
+		blue.Println("│")
+		// Split result into lines and display
+		lines := strings.Split(msg.Result, "\n")
+		for _, line := range lines {
+			blue.Print("│ ")
+			white.Println(line)
+		}
+	}
+
+	blue.Println("└─")
 }
 
 func displayUsage(usage *Usage) {
@@ -320,4 +540,18 @@ func displayUsage(usage *Usage) {
 	}
 
 	gray.Println()
+}
+
+func displayUsageInline(usage *Usage, c *color.Color) {
+	c.Print("│ ")
+	c.Printf("Tokens: in=%d out=%d", usage.InputTokens, usage.OutputTokens)
+
+	if usage.CacheReadInputTokens > 0 {
+		c.Printf(" cache_read=%d", usage.CacheReadInputTokens)
+	}
+	if usage.CacheCreationInputTokens > 0 {
+		c.Printf(" cache_create=%d", usage.CacheCreationInputTokens)
+	}
+
+	c.Println()
 }
