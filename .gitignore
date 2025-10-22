@@ -1,6 +1,9 @@
 # Binaries
 claude-clean
-claude-clean-output
+release/
+
+# Dev tooling
+.claude/
 
 # Go build artifacts
 *.exe

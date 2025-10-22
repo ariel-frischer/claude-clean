@@ -1,4 +1,4 @@
-.PHONY: help build install setup-alias run run-verbose test clean fmt vet deps all
+.PHONY: help build install setup-alias run run-verbose test clean fmt vet deps all build-release release
 
 # Binary name
 BINARY_NAME=claude-clean
@@ -10,17 +10,21 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  build       - Build the binary"
-	@echo "  install     - Install to ~/.local/bin and optionally setup 'cclean' alias"
-	@echo "  setup-alias - Setup shell alias for 'cclean' command"
-	@echo "  run         - Run with sample mock data"
-	@echo "  run-verbose - Run with verbose output on sample data"
-	@echo "  test        - Run tests"
-	@echo "  clean       - Remove built binaries"
-	@echo "  fmt         - Format code with gofmt"
-	@echo "  vet         - Run go vet"
-	@echo "  deps        - Download dependencies"
-	@echo "  all         - Format, vet, and build"
+	@echo "  build         - Build the binary"
+	@echo "  install       - Install to ~/.local/bin and optionally setup 'cclean' alias"
+	@echo "  setup-alias   - Setup shell alias for 'cclean' command"
+	@echo "  run           - Run with sample mock data"
+	@echo "  run-verbose   - Run with verbose output on sample data"
+	@echo "  test          - Run tests"
+	@echo "  clean         - Remove built binaries"
+	@echo "  fmt           - Format code with gofmt"
+	@echo "  vet           - Run go vet"
+	@echo "  deps          - Download dependencies"
+	@echo "  all           - Format, vet, and build"
+	@echo ""
+	@echo "Release targets:"
+	@echo "  build-release - Build binaries for all platforms (Linux, macOS, Windows)"
+	@echo "  release       - Create a GitHub release (requires version, e.g., make release VERSION=v0.1.0)"
 
 # Build the binary
 build:
@@ -159,3 +163,16 @@ deps:
 
 # Build everything
 all: fmt vet build
+
+# Build binaries for all platforms
+build-release:
+	@./scripts/build-binaries.sh $(VERSION)
+
+# Create a GitHub release
+release: build-release
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required"; \
+		echo "Usage: make release VERSION=v0.1.0 [NOTES='Release notes']"; \
+		exit 1; \
+	fi
+	@./scripts/create-release.sh $(VERSION) "$(NOTES)"
