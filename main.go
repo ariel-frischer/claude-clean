@@ -752,3 +752,298 @@ func displayResultMessageCompact(msg *StreamMessage, lineNum int) {
 	}
 	fmt.Println()
 }
+
+// ============================================================================
+// MINIMAL STYLE FORMATTERS
+// ============================================================================
+
+func displayMessageMinimal(msg *StreamMessage, lineNum int) {
+	switch msg.Type {
+	case "system":
+		displaySystemMessageMinimal(msg, lineNum)
+	case "assistant":
+		displayAssistantMessageMinimal(msg, lineNum)
+	case "user":
+		displayUserMessageMinimal(msg, lineNum)
+	case "result":
+		displayResultMessageMinimal(msg, lineNum)
+	}
+}
+
+func displaySystemMessageMinimal(msg *StreamMessage, lineNum int) {
+	boldCyan.Printf("SYSTEM")
+	if msg.Subtype != "" {
+		cyan.Printf(" [%s]", msg.Subtype)
+	}
+	gray.Printf(" (line %d)\n", lineNum)
+
+	if msg.CWD != "" {
+		cyan.Printf("  Working Directory: %s\n", msg.CWD)
+	}
+	if msg.Model != "" {
+		cyan.Printf("  Model: %s\n", msg.Model)
+	}
+	if msg.ClaudeCodeVersion != "" {
+		cyan.Printf("  Claude Code: v%s\n", msg.ClaudeCodeVersion)
+	}
+	if len(msg.Tools) > 0 {
+		cyan.Printf("  Tools: %d available\n", len(msg.Tools))
+	}
+	fmt.Println()
+}
+
+func displayAssistantMessageMinimal(msg *StreamMessage, lineNum int) {
+	if msg.Message == nil || len(msg.Message.Content) == 0 {
+		return
+	}
+
+	// Group consecutive text blocks
+	var textBlocks []string
+	var toolUses []ContentBlock
+
+	for _, block := range msg.Message.Content {
+		switch block.Type {
+		case "text":
+			if block.Text != "" {
+				textBlocks = append(textBlocks, block.Text)
+			}
+		case "tool_use":
+			toolUses = append(toolUses, block)
+		}
+	}
+
+	// Display text blocks
+	if len(textBlocks) > 0 {
+		boldGreen.Printf("ASSISTANT")
+		gray.Printf(" (line %d)\n", lineNum)
+
+		for _, text := range textBlocks {
+			white.Printf("  %s\n", text)
+		}
+
+		if *verbose && msg.Message.Usage != nil {
+			gray.Printf("  Tokens: in=%d out=%d", msg.Message.Usage.InputTokens, msg.Message.Usage.OutputTokens)
+			if msg.Message.Usage.CacheReadInputTokens > 0 {
+				gray.Printf(" cache_read=%d", msg.Message.Usage.CacheReadInputTokens)
+			}
+			if msg.Message.Usage.CacheCreationInputTokens > 0 {
+				gray.Printf(" cache_create=%d", msg.Message.Usage.CacheCreationInputTokens)
+			}
+			fmt.Println()
+		}
+		fmt.Println()
+	}
+
+	// Display tool uses
+	for _, tool := range toolUses {
+		displayToolUseMinimal(&tool, lineNum)
+	}
+}
+
+func displayToolUseMinimal(tool *ContentBlock, lineNum int) {
+	boldYellow.Printf("TOOL: %s", tool.Name)
+	gray.Printf(" (line %d)\n", lineNum)
+
+	if *verbose {
+		yellow.Printf("  ID: %s\n", tool.ID)
+	}
+
+	if tool.Input != nil {
+		yellow.Println("  Input:")
+		for key, value := range tool.Input {
+			yellow.Printf("    %s: ", key)
+
+			switch v := value.(type) {
+			case string:
+				if len(v) > 300 {
+					white.Printf("%s ... (%d chars omitted) ... %s\n", v[:200], len(v)-300, v[len(v)-100:])
+				} else {
+					white.Println(v)
+				}
+			case []interface{}:
+				if tool.Name == "TodoWrite" && key == "todos" {
+					white.Println()
+					displayTodosMinimal(v)
+				} else {
+					white.Printf("[%d items]\n", len(v))
+				}
+			case map[string]interface{}:
+				white.Println("{...}")
+			default:
+				white.Printf("%v\n", v)
+			}
+		}
+	}
+	fmt.Println()
+}
+
+func displayTodosMinimal(todos []interface{}) {
+	for _, todo := range todos {
+		todoMap, ok := todo.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		content, _ := todoMap["content"].(string)
+		status, _ := todoMap["status"].(string)
+
+		var statusIcon string
+		switch status {
+		case "completed":
+			statusIcon = green.Sprint("✓")
+		case "in_progress":
+			statusIcon = yellow.Sprint("→")
+		case "pending":
+			statusIcon = gray.Sprint("○")
+		default:
+			statusIcon = gray.Sprint("-")
+		}
+
+		yellow.Printf("      %s %s\n", statusIcon, content)
+	}
+}
+
+func displayUserMessageMinimal(msg *StreamMessage, lineNum int) {
+	if msg.Message == nil || len(msg.Message.Content) == 0 {
+		return
+	}
+
+	for _, block := range msg.Message.Content {
+		if block.Type == "tool_result" {
+			displayToolResultMinimal(&block, lineNum)
+		}
+	}
+}
+
+func displayToolResultMinimal(block *ContentBlock, lineNum int) {
+	if block.IsError {
+		boldRed.Printf("TOOL RESULT ERROR")
+		gray.Printf(" (line %d)\n", lineNum)
+
+		if *verbose {
+			red.Printf("  Tool ID: %s\n", block.ToolUseID)
+		}
+
+		contentStr := ""
+		switch v := block.Content.(type) {
+		case string:
+			contentStr = v
+		default:
+			contentStr = fmt.Sprintf("%v", v)
+		}
+
+		white.Printf("  %s\n", contentStr)
+	} else {
+		boldMagenta.Printf("TOOL RESULT")
+		gray.Printf(" (line %d)\n", lineNum)
+
+		if *verbose {
+			gray.Printf("  Tool ID: %s\n", block.ToolUseID)
+		}
+
+		contentStr := ""
+		switch v := block.Content.(type) {
+		case string:
+			contentStr = v
+		default:
+			contentStr = fmt.Sprintf("%v", v)
+		}
+
+		if contentStr == "" {
+			gray.Println("  (no output)")
+		} else {
+			lines := strings.Split(contentStr, "\n")
+			firstLines := 20
+			lastLines := 20
+			totalLines := len(lines)
+
+			if totalLines <= firstLines+lastLines {
+				for _, line := range lines {
+					white.Printf("  %s\n", line)
+				}
+			} else {
+				for i := 0; i < firstLines; i++ {
+					white.Printf("  %s\n", lines[i])
+				}
+				gray.Printf("  ... (%d more lines) ...\n", totalLines-firstLines-lastLines)
+				for i := totalLines - lastLines; i < totalLines; i++ {
+					white.Printf("  %s\n", lines[i])
+				}
+			}
+		}
+	}
+	fmt.Println()
+}
+
+func displayResultMessageMinimal(msg *StreamMessage, lineNum int) {
+	if msg.IsError {
+		boldRed.Printf("RESULT: ERROR")
+	} else {
+		boldBlue.Printf("RESULT: SUCCESS")
+	}
+	gray.Printf(" (line %d)\n", lineNum)
+
+	if msg.NumTurns > 0 {
+		blue.Printf("  Turns: %d\n", msg.NumTurns)
+	}
+	if msg.DurationMS > 0 {
+		blue.Printf("  Duration: %.2fs", float64(msg.DurationMS)/1000.0)
+		if msg.DurationAPIMS > 0 {
+			blue.Printf(" (API: %.2fs)", float64(msg.DurationAPIMS)/1000.0)
+		}
+		blue.Println()
+	}
+	if msg.TotalCostUSD > 0 {
+		blue.Printf("  Cost: $%.4f\n", msg.TotalCostUSD)
+	}
+
+	if msg.Usage != nil {
+		blue.Printf("  Tokens: in=%d out=%d", msg.Usage.InputTokens, msg.Usage.OutputTokens)
+		if msg.Usage.CacheReadInputTokens > 0 {
+			blue.Printf(" cache_read=%d", msg.Usage.CacheReadInputTokens)
+		}
+		if msg.Usage.CacheCreationInputTokens > 0 {
+			blue.Printf(" cache_create=%d", msg.Usage.CacheCreationInputTokens)
+		}
+		blue.Println()
+	}
+
+	if *verbose && msg.ModelUsage != nil && len(msg.ModelUsage) > 0 {
+		blue.Println()
+		blue.Println("  Model Usage:")
+		for model, usageData := range msg.ModelUsage {
+			blue.Printf("    %s:\n", model)
+			if usageMap, ok := usageData.(map[string]interface{}); ok {
+				if inputTokens, ok := usageMap["inputTokens"].(float64); ok {
+					blue.Printf("      Input: %.0f tokens\n", inputTokens)
+				}
+				if outputTokens, ok := usageMap["outputTokens"].(float64); ok {
+					blue.Printf("      Output: %.0f tokens\n", outputTokens)
+				}
+				if cost, ok := usageMap["costUSD"].(float64); ok {
+					blue.Printf("      Cost: $%.4f\n", cost)
+				}
+			}
+		}
+	}
+
+	if len(msg.PermissionDenials) > 0 {
+		fmt.Println()
+		red.Printf("  Permission Denials: %d\n", len(msg.PermissionDenials))
+		if *verbose {
+			for i, denial := range msg.PermissionDenials {
+				red.Printf("    [%d] %v\n", i+1, denial)
+			}
+		}
+	}
+
+	if msg.Result != "" {
+		fmt.Println()
+		lines := strings.Split(msg.Result, "\n")
+		for _, line := range lines {
+			white.Printf("  %s\n", line)
+		}
+	}
+
+	fmt.Println()
+}
