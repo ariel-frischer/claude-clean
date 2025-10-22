@@ -7,7 +7,7 @@ A beautiful terminal parser for Claude Code's streaming JSON output. Transforms 
 When you run Claude Code with verbose stream-json output, you get raw JSON logs that look like this:
 
 ```bash
-claude-code -p "what is 2+2" --verbose --output-format stream-json
+claude -p "what is 2+2" --verbose --output-format stream-json
 ```
 
 This produces a stream of JSON objects that are difficult to read in real-time. **Claude Clean** parses this stream and transforms it into beautiful, human-readable terminal output with colors, boxes, and proper formatting.
