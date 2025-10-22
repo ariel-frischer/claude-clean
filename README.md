@@ -46,7 +46,8 @@ This is the type of output this tool handles best: verbose stream-json logs from
 
 ## Features
 
-- Beautiful color-coded output with box drawing characters
+- **Multiple output styles**: Choose between default, compact, minimal, or plain formats
+- Beautiful color-coded output with box drawing characters (default style)
 - Supports stdin/stdout for piping
 - Can read from log files
 - Real-time streaming support
@@ -63,6 +64,54 @@ This is the type of output this tool handles best: verbose stream-json logs from
 go build -o claude-clean-output
 ```
 
+Or use the Makefile:
+```bash
+make install  # Builds and installs to ~/.local/bin with optional alias setup
+```
+
+## Quick Setup (Recommended)
+
+For the best experience, add a shell alias so you can use `cclean "your prompt"` instead of typing the full command every time.
+
+### Bash or Zsh
+
+Add to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+cclean() {
+  claude-code -p "$*" --verbose --output-format stream-json | claude-clean-output
+}
+```
+
+Then reload your shell:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+### Fish
+
+Add to your `~/.config/fish/config.fish`:
+
+```fish
+function cclean
+  claude-code -p $argv --verbose --output-format stream-json | claude-clean-output
+end
+```
+
+Then reload:
+```fish
+source ~/.config/fish/config.fish
+```
+
+### Usage after setup:
+
+```bash
+cclean "what is 2+2"
+cclean "help me debug this error"
+```
+
+Much cleaner than typing the full command every time!
+
 ## Usage
 
 ### Live streaming with Claude Code (recommended):
@@ -72,18 +121,38 @@ claude-code -p "what is 2+2" --verbose --output-format stream-json | ./claude-cl
 
 ### From a log file:
 ```bash
-./claude-clean-output mocks/claude-stream-json-log.log
+./claude-clean-output mocks/claude-stream-json-simple.jsonl
 ```
 
 ### From stdin (pipe):
 ```bash
-cat mocks/claude-stream-json-log.log | ./claude-clean-output
+cat mocks/claude-stream-json-simple.jsonl | ./claude-clean-output
 ```
 
-## Output Format
+### Using different output styles:
+```bash
+# Default style (boxed format with colors)
+./claude-clean-output log.jsonl
 
-The parser formats different message types with distinct colors and styles:
+# Compact style (minimal single-line format)
+./claude-clean-output -s compact log.jsonl
 
+# Minimal style (simple indented format, no boxes)
+./claude-clean-output -s minimal log.jsonl
+
+# Plain style (no colors, no boxes)
+./claude-clean-output -s plain log.jsonl
+
+# Verbose output with compact style
+./claude-clean-output -v -s compact log.jsonl
+```
+
+## Output Styles
+
+The tool supports four different output styles, each optimized for different use cases:
+
+### Default Style (Boxed Format)
+The default style uses box drawing characters and colors for maximum readability:
 - **SYSTEM** (Cyan): System initialization, configuration
 - **ASSISTANT** (Green): Claude's text responses
 - **TOOL** (Yellow): Tool invocations (Bash, Read, Write, etc.)
@@ -94,7 +163,47 @@ Each message includes:
 - Line number from the source file
 - Message type and details
 - Content (truncated for readability)
-- Token usage statistics (for assistant messages)
+- Token usage statistics (with `-v` flag)
+
+### Compact Style
+Minimal single-line format for quick scanning:
+```
+SYS[init] L1 claude-sonnet-4-5-20250929 @/home/user/project
+AST L2 I'll help you with that task
+TOOL L3 Bash {description: "List files", command: "ls -la"}
+RES L4 total 24 drwxr-xr-x 3 user user 4096 ...
+OK L5 turns=2 1.23s $0.0012 in=150 out=45
+```
+
+### Minimal Style
+Simple indented format without boxes, but with colors:
+```
+SYSTEM [init] (line 1)
+  Working Directory: /home/user/project
+  Model: claude-sonnet-4-5-20250929
+
+ASSISTANT (line 2)
+  I'll help you with that task
+
+TOOL: Bash (line 3)
+  Input:
+    command: ls -la
+
+TOOL RESULT (line 4)
+  total 24
+  drwxr-xr-x 3 user user 4096 ...
+```
+
+### Plain Style
+No colors, no boxes - just plain text for logging or piping:
+```
+SYSTEM [init] (line 1)
+  Working Directory: /home/user/project
+  Model: claude-sonnet-4-5-20250929
+
+ASSISTANT (line 2)
+  I'll help you with that task
+```
 
 ## Example Output
 
