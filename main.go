@@ -88,11 +88,25 @@ var (
 	white       = color.New(color.FgWhite)
 )
 
+// OutputStyle represents different output formatting styles
+type OutputStyle string
+
+const (
+	StyleDefault OutputStyle = "default"
+	StyleCompact OutputStyle = "compact"
+	StyleMinimal OutputStyle = "minimal"
+	StylePlain   OutputStyle = "plain"
+)
+
 // Command-line flags
 var (
 	verbose = flag.Bool("v", false, "Show verbose output (tool IDs, token usage)")
 	help    = flag.Bool("h", false, "Show help message")
+	style   = flag.String("s", "default", "Output style: default, compact, minimal, plain")
 )
+
+// Global style setting
+var currentStyle OutputStyle
 
 func main() {
 	flag.Parse()
@@ -101,13 +115,30 @@ func main() {
 		fmt.Println("Usage: claude-clean-output [OPTIONS] [FILE]")
 		fmt.Println("\nParse and beautify Claude Code's streaming JSON output")
 		fmt.Println("\nOptions:")
-		fmt.Println("  -v    Show verbose output (tool IDs, token usage)")
-		fmt.Println("  -h    Show this help message")
+		fmt.Println("  -v            Show verbose output (tool IDs, token usage)")
+		fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain (default: default)")
+		fmt.Println("  -h            Show this help message")
+		fmt.Println("\nStyles:")
+		fmt.Println("  default       Full boxed format with colors (current format)")
+		fmt.Println("  compact       Minimal single-line format")
+		fmt.Println("  minimal       Simple indented format without boxes")
+		fmt.Println("  plain         No colors, no boxes, just text")
 		fmt.Println("\nExamples:")
 		fmt.Println("  claude-clean-output log.jsonl")
 		fmt.Println("  cat log.jsonl | claude-clean-output")
-		fmt.Println("  claude-clean-output -v log.jsonl  # Show detailed info")
+		fmt.Println("  claude-clean-output -v log.jsonl          # Show detailed info")
+		fmt.Println("  claude-clean-output -s compact log.jsonl  # Use compact style")
+		fmt.Println("  claude-clean-output -s minimal log.jsonl  # Use minimal style")
 		os.Exit(0)
+	}
+
+	// Validate and set the style
+	switch OutputStyle(*style) {
+	case StyleDefault, StyleCompact, StyleMinimal, StylePlain:
+		currentStyle = OutputStyle(*style)
+	default:
+		fmt.Fprintf(os.Stderr, "Invalid style: %s. Valid styles are: default, compact, minimal, plain\n", *style)
+		os.Exit(1)
 	}
 
 	var reader io.Reader
@@ -193,6 +224,20 @@ func main() {
 }
 
 func displayMessage(msg *StreamMessage, lineNum int) {
+	// Route to appropriate formatter based on style
+	switch currentStyle {
+	case StyleCompact:
+		displayMessageCompact(msg, lineNum)
+	case StyleMinimal:
+		displayMessageMinimal(msg, lineNum)
+	case StylePlain:
+		displayMessagePlain(msg, lineNum)
+	default: // StyleDefault
+		displayMessageDefault(msg, lineNum)
+	}
+}
+
+func displayMessageDefault(msg *StreamMessage, lineNum int) {
 	switch msg.Type {
 	case "system":
 		displaySystemMessage(msg, lineNum)
@@ -554,4 +599,156 @@ func displayUsageInline(usage *Usage, c *color.Color) {
 	}
 
 	c.Println()
+}
+
+// ============================================================================
+// COMPACT STYLE FORMATTERS
+// ============================================================================
+
+func displayMessageCompact(msg *StreamMessage, lineNum int) {
+	switch msg.Type {
+	case "system":
+		displaySystemMessageCompact(msg, lineNum)
+	case "assistant":
+		displayAssistantMessageCompact(msg, lineNum)
+	case "user":
+		displayUserMessageCompact(msg, lineNum)
+	case "result":
+		displayResultMessageCompact(msg, lineNum)
+	}
+}
+
+func displaySystemMessageCompact(msg *StreamMessage, lineNum int) {
+	boldCyan.Print("SYS")
+	if msg.Subtype != "" {
+		cyan.Printf("[%s]", msg.Subtype)
+	}
+	gray.Printf(" L%d", lineNum)
+	if msg.Model != "" {
+		cyan.Printf(" %s", msg.Model)
+	}
+	if msg.CWD != "" {
+		cyan.Printf(" @%s", msg.CWD)
+	}
+	fmt.Println()
+}
+
+func displayAssistantMessageCompact(msg *StreamMessage, lineNum int) {
+	if msg.Message == nil || len(msg.Message.Content) == 0 {
+		return
+	}
+
+	for _, block := range msg.Message.Content {
+		switch block.Type {
+		case "text":
+			if block.Text != "" {
+				boldGreen.Print("AST ")
+				gray.Printf("L%d ", lineNum)
+				// Truncate long text to single line
+				text := strings.ReplaceAll(block.Text, "\n", " ")
+				if len(text) > 100 {
+					white.Printf("%s...\n", text[:100])
+				} else {
+					white.Println(text)
+				}
+			}
+		case "tool_use":
+			displayToolUseCompact(&block, lineNum)
+		}
+	}
+}
+
+func displayToolUseCompact(tool *ContentBlock, lineNum int) {
+	boldYellow.Printf("TOOL ")
+	gray.Printf("L%d ", lineNum)
+	yellow.Printf("%s", tool.Name)
+
+	// Show key inputs in compact form
+	if tool.Input != nil {
+		yellow.Print(" {")
+		first := true
+		for key, value := range tool.Input {
+			if !first {
+				yellow.Print(", ")
+			}
+			first = false
+
+			switch v := value.(type) {
+			case string:
+				if len(v) > 50 {
+					yellow.Printf("%s: \"%.50s...\"", key, v)
+				} else {
+					yellow.Printf("%s: \"%s\"", key, v)
+				}
+			case []interface{}:
+				yellow.Printf("%s: [%d items]", key, len(v))
+			default:
+				yellow.Printf("%s: %v", key, v)
+			}
+		}
+		yellow.Print("}")
+	}
+	fmt.Println()
+}
+
+func displayUserMessageCompact(msg *StreamMessage, lineNum int) {
+	if msg.Message == nil || len(msg.Message.Content) == 0 {
+		return
+	}
+
+	for _, block := range msg.Message.Content {
+		if block.Type == "tool_result" {
+			displayToolResultCompact(&block, lineNum)
+		}
+	}
+}
+
+func displayToolResultCompact(block *ContentBlock, lineNum int) {
+	if block.IsError {
+		boldRed.Print("ERR ")
+	} else {
+		boldMagenta.Print("RES ")
+	}
+	gray.Printf("L%d ", lineNum)
+
+	contentStr := ""
+	switch v := block.Content.(type) {
+	case string:
+		contentStr = v
+	default:
+		contentStr = fmt.Sprintf("%v", v)
+	}
+
+	// Compact output - single line summary
+	contentStr = strings.ReplaceAll(contentStr, "\n", " ")
+	if contentStr == "" {
+		gray.Println("(no output)")
+	} else if len(contentStr) > 100 {
+		white.Printf("%.100s...\n", contentStr)
+	} else {
+		white.Println(contentStr)
+	}
+}
+
+func displayResultMessageCompact(msg *StreamMessage, lineNum int) {
+	if msg.IsError {
+		boldRed.Print("FAIL ")
+	} else {
+		boldBlue.Print("OK ")
+	}
+	gray.Printf("L%d", lineNum)
+
+	if msg.NumTurns > 0 {
+		blue.Printf(" turns=%d", msg.NumTurns)
+	}
+	if msg.DurationMS > 0 {
+		blue.Printf(" %.2fs", float64(msg.DurationMS)/1000.0)
+	}
+	if msg.TotalCostUSD > 0 {
+		blue.Printf(" $%.4f", msg.TotalCostUSD)
+	}
+	if msg.Usage != nil {
+		blue.Printf(" in=%d out=%d", msg.Usage.InputTokens, msg.Usage.OutputTokens)
+	}
+	fmt.Println()
 }
