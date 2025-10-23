@@ -82,6 +82,7 @@ The display system has a multi-style architecture:
 
 ### Special Features
 
+- **Large Line Handling** (main.go:102-107): Scanner buffer set to 10MB to handle very large JSON lines from tool results or file contents. If a line exceeds 10MB (extremely rare), shows a detailed warning and exits gracefully with exit code 2.
 - **Duplicate Detection** (main.go:182-203): Buffers assistant messages and compares with result messages to avoid showing the same content twice
 - **Smart Truncation**:
   - Tool input strings: Shows first 200 + last 100 chars (main.go:343-350)

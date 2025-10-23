@@ -165,8 +165,25 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
-		os.Exit(1)
+		// Check if it's a "token too long" error (line exceeds buffer)
+		if err == bufio.ErrTooLong {
+			red.Fprintf(os.Stderr, "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+			red.Fprintf(os.Stderr, "⚠  WARNING: Line %d exceeds 10MB buffer limit\n", lineNum+1)
+			red.Fprintf(os.Stderr, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+			yellow.Fprintf(os.Stderr, "\nThis is extremely rare and likely indicates:\n")
+			yellow.Fprintf(os.Stderr, "  • A tool returned an unusually large output (>10MB)\n")
+			yellow.Fprintf(os.Stderr, "  • Claude generated an extremely long response\n")
+			yellow.Fprintf(os.Stderr, "\nAll previous lines were processed successfully.\n")
+			yellow.Fprintf(os.Stderr, "Remaining lines after this point were not processed.\n")
+			yellow.Fprintf(os.Stderr, "\nIf this happens frequently, please report it at:\n")
+			yellow.Fprintf(os.Stderr, "https://github.com/anthropics/claude-code-clean-output/issues\n")
+			red.Fprintf(os.Stderr, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
+			// Exit with code 2 to indicate partial processing
+			os.Exit(2)
+		} else {
+			fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 
