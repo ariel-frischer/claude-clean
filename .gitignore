@@ -5,6 +5,9 @@ release/
 # Dev tooling
 .claude/
 
+# Local temporary files (screenshots, test data, etc.)
+tmp/
+
 # Go build artifacts
 *.exe
 *.exe~
