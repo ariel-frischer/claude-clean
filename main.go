@@ -100,6 +100,11 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(reader)
+	// Increase buffer size to handle very large JSON lines (e.g., large file contents)
+	// Default is 64KB, we set it to 10MB max
+	const maxCapacity = 10 * 1024 * 1024 // 10MB
+	buf := make([]byte, maxCapacity)
+	scanner.Buffer(buf, maxCapacity)
 	lineNum := 0
 	var lastAssistantMsg *StreamMessage
 	var lastAssistantLine int
