@@ -119,3 +119,4 @@ Colors are defined globally using `github.com/fatih/color` (main.go:75-89):
 - Run `make run` or `make run-verbose` to test parsing
 - Test with different styles using `-s` flag
 - Verify colors and formatting work correctly
+
