@@ -44,6 +44,8 @@ Much better! 🎨
 
 This is the type of output this tool handles best: verbose stream-json logs from Claude Code.
 
+**Bonus:** Using the `-p` flag with `--output-format stream-json` bypasses Claude's interactive UI/JS, which can help avoid segfault issues some users experience (e.g., with bun).
+
 ## Features
 
 - **Multiple output styles**: Choose between default, compact, minimal, or plain formats
