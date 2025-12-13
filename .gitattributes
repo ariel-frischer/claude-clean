@@ -1,0 +1,4 @@
+# Dev-only files - these stay in dev branch and won't merge to main
+.dev/** merge=ours
+spec/** merge=ours
+TODO.md merge=ours
