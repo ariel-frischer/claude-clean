@@ -8,12 +8,18 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
 	"golang.org/x/term"
 )
+
+// binaryName returns the name of this executable
+func binaryName() string {
+	return filepath.Base(os.Args[0])
+}
 
 // Color definitions
 var (
@@ -53,32 +59,38 @@ var (
 // Global style setting
 var currentStyle OutputStyle
 
+func printHelp() {
+	bin := binaryName()
+	fmt.Printf("Usage: %s [OPTIONS] [PROMPT | FILE]\n", bin)
+	fmt.Println("\nRun Claude prompts with clean output, or parse existing JSON logs.")
+	fmt.Println("\nModes:")
+	fmt.Printf("  %s \"your prompt\"     Run Claude and display clean output\n", bin)
+	fmt.Printf("  %s log.jsonl         Parse existing JSON log file\n", bin)
+	fmt.Printf("  cat log.jsonl | %s   Parse JSON from stdin\n", bin)
+	fmt.Println("\nOptions:")
+	fmt.Println("  -v            Show verbose output (tool IDs, token usage)")
+	fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain")
+	fmt.Println("  -oauth        Use OAuth (Claude Pro/Team plan) instead of API key")
+	fmt.Println("  -h, --help    Show this help message")
+	fmt.Println("\nStyles:")
+	fmt.Println("  default       Full boxed format with colors")
+	fmt.Println("  compact       Minimal single-line format")
+	fmt.Println("  minimal       Simple indented format without boxes")
+	fmt.Println("  plain         No colors, no boxes, just text")
+	fmt.Println("\nExamples:")
+	fmt.Printf("  %s \"what is 2+2?\"\n", bin)
+	fmt.Printf("  %s -oauth \"explain TCP vs UDP\"\n", bin)
+	fmt.Printf("  %s -s compact \"list files in current dir\"\n", bin)
+	fmt.Printf("  %s log.jsonl\n", bin)
+	fmt.Printf("  cat log.jsonl | %s\n", bin)
+}
+
 func main() {
+	flag.Usage = printHelp
 	flag.Parse()
 
 	if *help {
-		fmt.Println("Usage: claude-clean [OPTIONS] [PROMPT | FILE]")
-		fmt.Println("\nRun Claude prompts with clean output, or parse existing JSON logs.")
-		fmt.Println("\nModes:")
-		fmt.Println("  claude-clean \"your prompt\"     Run Claude and display clean output")
-		fmt.Println("  claude-clean log.jsonl         Parse existing JSON log file")
-		fmt.Println("  cat log.jsonl | claude-clean   Parse JSON from stdin")
-		fmt.Println("\nOptions:")
-		fmt.Println("  -v            Show verbose output (tool IDs, token usage)")
-		fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain")
-		fmt.Println("  -oauth        Use OAuth (Claude Pro/Team plan) instead of API key")
-		fmt.Println("  -h            Show this help message")
-		fmt.Println("\nStyles:")
-		fmt.Println("  default       Full boxed format with colors")
-		fmt.Println("  compact       Minimal single-line format")
-		fmt.Println("  minimal       Simple indented format without boxes")
-		fmt.Println("  plain         No colors, no boxes, just text")
-		fmt.Println("\nExamples:")
-		fmt.Println("  claude-clean \"what is 2+2?\"")
-		fmt.Println("  claude-clean -oauth \"explain TCP vs UDP\"")
-		fmt.Println("  claude-clean -s compact \"list files in current dir\"")
-		fmt.Println("  claude-clean log.jsonl")
-		fmt.Println("  cat log.jsonl | claude-clean")
+		printHelp()
 		os.Exit(0)
 	}
 
@@ -116,14 +128,7 @@ func main() {
 		// No arguments - check if stdin is a pipe or terminal
 		if term.IsTerminal(int(os.Stdin.Fd())) {
 			// Terminal with no args - show help
-			fmt.Println("Usage: claude-clean [OPTIONS] [PROMPT | FILE]")
-			fmt.Println("\nRun Claude prompts with clean output, or parse existing JSON logs.")
-			fmt.Println("\nExamples:")
-			fmt.Println("  claude-clean \"what is 2+2?\"")
-			fmt.Println("  claude-clean -oauth \"explain TCP vs UDP\"")
-			fmt.Println("  claude-clean log.jsonl")
-			fmt.Println("  cat log.jsonl | claude-clean")
-			fmt.Println("\nRun 'claude-clean -h' for full help.")
+			printHelp()
 			os.Exit(0)
 		}
 		// Stdin is a pipe - read from it
@@ -827,6 +832,16 @@ func displayResultMessageCompact(msg *StreamMessage, lineNum int) {
 		blue.Printf(" in=%d out=%d", msg.Usage.InputTokens, msg.Usage.OutputTokens)
 	}
 	fmt.Println()
+
+	// Show result text if present
+	if msg.Result != "" {
+		result := strings.ReplaceAll(msg.Result, "\n", " ")
+		if len(result) > 200 {
+			white.Printf("  %s...\n", result[:200])
+		} else {
+			white.Printf("  %s\n", result)
+		}
+	}
 }
 
 // ============================================================================

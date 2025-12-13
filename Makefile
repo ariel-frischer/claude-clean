@@ -1,7 +1,7 @@
 .PHONY: help build install run run-verbose test clean fmt vet deps all build-release release
 
 # Binary name
-BINARY_NAME=claude-clean
+BINARY_NAME=cclean
 
 # Default target
 help:
@@ -11,7 +11,7 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  build         - Build the binary"
-	@echo "  install       - Install to ~/.local/bin and setup 'cclean' alias"
+	@echo "  install       - Install cclean to ~/.local/bin"
 	@echo "  run           - Run with sample mock data"
 	@echo "  run-verbose   - Run with verbose output on sample data"
 	@echo "  test          - Run tests"
