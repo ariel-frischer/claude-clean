@@ -77,17 +77,18 @@ fi
 # The cclean function with --help handler
 CCLEAN_FUNC='# Claude Clean alias
 cclean() {
-  if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
     echo "cclean - Quick Claude prompts with clean terminal output"
     echo ""
-    echo "Usage: cclean <prompt>"
+    echo "Usage: cclean \"<prompt>\""
     echo ""
     echo "This is a convenience wrapper that pipes Claude output through claude-clean."
     echo "All arguments are passed as a prompt to Claude - this command has no flags."
     echo ""
     echo "Examples:"
-    echo "  cclean what is 2+2"
-    echo "  cclean explain the difference between TCP and UDP"
+    echo "  cclean \"what is 2+2?\""
+    echo "  cclean \"explain the difference between TCP and UDP\""
+    echo "  cclean \"why does this fail: \$(cat error.log)\""
     echo ""
     echo "Related commands:"
     echo "  claude-clean --help   Parser options (styles, verbose mode)"

@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
+	"golang.org/x/term"
 )
 
 // Color definitions
@@ -42,9 +44,10 @@ const (
 
 // Command-line flags
 var (
-	verbose = flag.Bool("v", false, "Show verbose output (tool IDs, token usage)")
-	help    = flag.Bool("h", false, "Show help message")
-	style   = flag.String("s", "default", "Output style: default, compact, minimal, plain")
+	verbose  = flag.Bool("v", false, "Show verbose output (tool IDs, token usage)")
+	help     = flag.Bool("h", false, "Show help message")
+	style    = flag.String("s", "default", "Output style: default, compact, minimal, plain")
+	useOAuth = flag.Bool("oauth", false, "Use OAuth (Claude Pro/Team plan) instead of API key")
 )
 
 // Global style setting
@@ -54,23 +57,28 @@ func main() {
 	flag.Parse()
 
 	if *help {
-		fmt.Println("Usage: claude-clean-output [OPTIONS] [FILE]")
-		fmt.Println("\nParse and beautify Claude Code's streaming JSON output")
+		fmt.Println("Usage: claude-clean [OPTIONS] [PROMPT | FILE]")
+		fmt.Println("\nRun Claude prompts with clean output, or parse existing JSON logs.")
+		fmt.Println("\nModes:")
+		fmt.Println("  claude-clean \"your prompt\"     Run Claude and display clean output")
+		fmt.Println("  claude-clean log.jsonl         Parse existing JSON log file")
+		fmt.Println("  cat log.jsonl | claude-clean   Parse JSON from stdin")
 		fmt.Println("\nOptions:")
 		fmt.Println("  -v            Show verbose output (tool IDs, token usage)")
-		fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain (default: default)")
+		fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain")
+		fmt.Println("  -oauth        Use OAuth (Claude Pro/Team plan) instead of API key")
 		fmt.Println("  -h            Show this help message")
 		fmt.Println("\nStyles:")
-		fmt.Println("  default       Full boxed format with colors (current format)")
+		fmt.Println("  default       Full boxed format with colors")
 		fmt.Println("  compact       Minimal single-line format")
 		fmt.Println("  minimal       Simple indented format without boxes")
 		fmt.Println("  plain         No colors, no boxes, just text")
 		fmt.Println("\nExamples:")
-		fmt.Println("  claude-clean-output log.jsonl")
-		fmt.Println("  cat log.jsonl | claude-clean-output")
-		fmt.Println("  claude-clean-output -v log.jsonl          # Show detailed info")
-		fmt.Println("  claude-clean-output -s compact log.jsonl  # Use compact style")
-		fmt.Println("  claude-clean-output -s minimal log.jsonl  # Use minimal style")
+		fmt.Println("  claude-clean \"what is 2+2?\"")
+		fmt.Println("  claude-clean -oauth \"explain TCP vs UDP\"")
+		fmt.Println("  claude-clean -s compact \"list files in current dir\"")
+		fmt.Println("  claude-clean log.jsonl")
+		fmt.Println("  cat log.jsonl | claude-clean")
 		os.Exit(0)
 	}
 
@@ -85,17 +93,40 @@ func main() {
 
 	var reader io.Reader
 
-	// Check if we have a file argument or should read from stdin
+	// Check if we have arguments
 	args := flag.Args()
+
 	if len(args) > 0 {
-		file, err := os.Open(args[0])
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
-			os.Exit(1)
+		// Check if argument is a file or a prompt
+		if fileExists(args[0]) {
+			// It's a file - read from it
+			file, err := os.Open(args[0])
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
+				os.Exit(1)
+			}
+			defer file.Close()
+			reader = file
+		} else {
+			// It's a prompt - run claude and pipe output
+			prompt := strings.Join(args, " ")
+			reader = runClaude(prompt)
 		}
-		defer file.Close()
-		reader = file
 	} else {
+		// No arguments - check if stdin is a pipe or terminal
+		if term.IsTerminal(int(os.Stdin.Fd())) {
+			// Terminal with no args - show help
+			fmt.Println("Usage: claude-clean [OPTIONS] [PROMPT | FILE]")
+			fmt.Println("\nRun Claude prompts with clean output, or parse existing JSON logs.")
+			fmt.Println("\nExamples:")
+			fmt.Println("  claude-clean \"what is 2+2?\"")
+			fmt.Println("  claude-clean -oauth \"explain TCP vs UDP\"")
+			fmt.Println("  claude-clean log.jsonl")
+			fmt.Println("  cat log.jsonl | claude-clean")
+			fmt.Println("\nRun 'claude-clean -h' for full help.")
+			os.Exit(0)
+		}
+		// Stdin is a pipe - read from it
 		reader = os.Stdin
 	}
 
@@ -185,6 +216,59 @@ func main() {
 			os.Exit(1)
 		}
 	}
+}
+
+// fileExists checks if a path exists and is a file (not a directory)
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
+}
+
+// runClaude executes claude with the given prompt and returns a reader for its output
+func runClaude(prompt string) io.Reader {
+	// Build the command
+	args := []string{"-p", prompt, "--verbose", "--output-format", "stream-json"}
+
+	cmd := exec.Command("claude", args...)
+
+	// If OAuth mode, set ANTHROPIC_API_KEY to empty to force OAuth
+	if *useOAuth {
+		cmd.Env = append(os.Environ(), "ANTHROPIC_API_KEY=")
+	}
+
+	// Get stdout pipe
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating stdout pipe: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Pass through stderr
+	cmd.Stderr = os.Stderr
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error starting claude: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Make sure 'claude' (Claude Code CLI) is installed and in your PATH.\n")
+		os.Exit(1)
+	}
+
+	// Wait for command to finish in background
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			// Don't print error for normal exit codes
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				if exitErr.ExitCode() != 0 {
+					// Claude exited with error, stderr already shown
+				}
+			}
+		}
+	}()
+
+	return stdout
 }
 
 func displayMessage(msg *StreamMessage, lineNum int) {
