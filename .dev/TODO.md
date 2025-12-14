@@ -6,10 +6,10 @@
 
 - [ ] Rename project from `claude-code-clean-output` to `claude-clean`
   - [ ] Rename local directory
-  - [ ] Rename/create GitLab project
-  - [ ] Update go.mod module path
-  - [ ] Update all GitHub URLs in README, badges, scripts
-  - [ ] Update SECURITY.md if needed
+  - [ ] Rename/create GitLab project (or create new GitHub repo)
+  - [x] Update go.mod module path
+  - [x] Update all GitHub URLs in README, badges, scripts
+  - [x] Sanitize example paths in README
 
 ## Backlog
 

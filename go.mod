@@ -1,4 +1,4 @@
-module github.com/ariel-frischer/claude-code-clean-output
+module github.com/ariel-frischer/claude-clean
 
 go 1.24.0
 
