@@ -1,0 +1,21 @@
+#!/bin/bash
+# Auto-clean dev-only files when merging to main
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$BRANCH" = "main" ]; then
+    # Files/dirs to keep out of main
+    DEV_FILES=(".dev/CLAUDE.md" ".dev/TODO.md" ".dev/public-release-checklist.md" ".dev/spec")
+
+    CHANGED=false
+    for f in "${DEV_FILES[@]}"; do
+        if [ -e "$f" ]; then
+            git rm -rf --quiet "$f" 2>/dev/null && CHANGED=true
+        fi
+    done
+
+    if [ "$CHANGED" = true ]; then
+        echo "🧹 Cleaned dev-only files from main"
+        git commit --amend --no-edit --quiet
+    fi
+fi

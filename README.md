@@ -1,8 +1,8 @@
 # Claude Clean
 
-[![CI](https://github.com/ariel-frischer/claude-code-clean-output/actions/workflows/ci.yml/badge.svg)](https://github.com/ariel-frischer/claude-code-clean-output/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/ariel-frischer/claude-code-clean-output)](https://github.com/ariel-frischer/claude-code-clean-output/releases)
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
+[![Pipeline](https://gitlab.com/ariel-frischer/claude-clean/badges/main/pipeline.svg)](https://gitlab.com/ariel-frischer/claude-clean/-/pipelines)
+[![Release](https://img.shields.io/gitlab/v/release/ariel-frischer/claude-clean)](https://gitlab.com/ariel-frischer/claude-clean/-/releases)
+[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?logo=go)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A beautiful terminal parser for Claude Code's streaming JSON output. Transforms the raw stream-json log format into clean, colorful, and readable terminal output.
@@ -20,7 +20,7 @@ This produces a stream of JSON objects that are difficult to read in real-time. 
 ### Before (Raw JSON stream):
 
 ```json
-{"type":"system","subtype":"init","cwd":"/home/ari/repos/claude-code-clean-output","session_id":"6170607e-7232-407c-82c3-7fc983d60064","tools":["Task","Bash","Glob","Grep","ExitPlanMode","Read","Edit","Write","NotebookEdit","WebFetch","TodoWrite","WebSearch","BashOutput","KillShell","Skill","SlashCommand","mcp__perplexity-mcp__perplexity_ask","mcp__perplexity-mcp__perplexity_reason","mcp__sequential-thinking__sequentialthinking"],"mcp_servers":[{"name":"perplexity-mcp","status":"connected"},{"name":"sequential-thinking","status":"connected"}],"model":"claude-sonnet-4-5-20250929","permissionMode":"bypassPermissions","slash_commands":["commit-commands:clean_gone","commit-commands:commit-push-pr","commit-commands:commit","feature-dev:feature-dev","compact","context","cost","init","output-style:new","pr-comments","release-notes","todos","review","security-review"],"apiKeySource":"none","claude_code_version":"2.0.25","output_style":"default","agents":["general-purpose","statusline-setup","output-style-setup","Explore","feature-dev:code-architect","feature-dev:code-explorer","feature-dev:code-reviewer","thoughts-analyzer","codebase-analyzer","base-template-generator","codebase-pattern-finder","web-search-researcher","codebase-locator","thoughts-locator"],"skills":[],"uuid":"268b2d2e-e6c1-4bd9-9e0d-fc6eef0e1779"}
+{"type":"system","subtype":"init","cwd":"/home/user/project","session_id":"6170607e-7232-407c-82c3-7fc983d60064","tools":["Task","Bash","Glob","Grep","ExitPlanMode","Read","Edit","Write","NotebookEdit","WebFetch","TodoWrite","WebSearch","BashOutput","KillShell","Skill","SlashCommand","mcp__perplexity-mcp__perplexity_ask","mcp__perplexity-mcp__perplexity_reason","mcp__sequential-thinking__sequentialthinking"],"mcp_servers":[{"name":"perplexity-mcp","status":"connected"},{"name":"sequential-thinking","status":"connected"}],"model":"claude-sonnet-4-5-20250929","permissionMode":"bypassPermissions","slash_commands":["commit-commands:clean_gone","commit-commands:commit-push-pr","commit-commands:commit","feature-dev:feature-dev","compact","context","cost","init","output-style:new","pr-comments","release-notes","todos","review","security-review"],"apiKeySource":"none","claude_code_version":"2.0.25","output_style":"default","agents":["general-purpose","statusline-setup","output-style-setup","Explore","feature-dev:code-architect","feature-dev:code-explorer","feature-dev:code-reviewer","thoughts-analyzer","codebase-analyzer","base-template-generator","codebase-pattern-finder","web-search-researcher","codebase-locator","thoughts-locator"],"skills":[],"uuid":"268b2d2e-e6c1-4bd9-9e0d-fc6eef0e1779"}
 {"type":"assistant","message":{"model":"claude-sonnet-4-5-20250929","id":"msg_01Rws28Xg2tBY3A5fNdrk6Mf","type":"message","role":"assistant","content":[{"type":"text","text":"I'll run a comprehensive diagnostic using all the requested tools."}],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":3,"cache_creation_input_tokens":3117,"cache_read_input_tokens":14723,"cache_creation":{"ephemeral_5m_input_tokens":3117,"ephemeral_1h_input_tokens":0},"output_tokens":1,"service_tier":"standard"}},"parent_tool_use_id":null,"session_id":"6170607e-7232-407c-82c3-7fc983d60064","uuid":"68dda894-f1c3-4c75-b134-b364dd5d580d"}
 {"type":"assistant","message":{"model":"claude-sonnet-4-5-20250929","id":"msg_01Rws28Xg2tBY3A5fNdrk6Mf","type":"message","role":"assistant","content":[{"type":"tool_use","id":"toolu_01VdNvyRGtzZvniXJGQQjvEP","name":"Glob","input":{"pattern":"**/*.go"}}],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":3,"cache_creation_input_tokens":3117,"cache_read_input_tokens":14723,"cache_creation":{"ephemeral_5m_input_tokens":3117,"ephemeral_1h_input_tokens":0},"output_tokens":1,"service_tier":"standard"}},"parent_tool_use_id":null,"session_id":"6170607e-7232-407c-82c3-7fc983d60064","uuid":"e59b712a-7489-4166-80b9-13978fd2a6ea"}
 ```
@@ -28,18 +28,18 @@ This produces a stream of JSON objects that are difficult to read in real-time. 
 ### After (With Claude Clean):
 
 ```
-┌─ SYSTEM [init] (line 1)
-│ Working Directory: /home/ari/repos/claude-code-clean-output
+┌─ SYSTEM [init]
+│ Working Directory: /home/user/project
 │ Model: claude-sonnet-4-5-20250929
 │ Claude Code: v2.0.25
 │ Tools: 19 available
 └─
 
-┌─ ASSISTANT (line 2)
+┌─ ASSISTANT
 │ I'll run a comprehensive diagnostic using all the requested tools.
 └─
 
-┌─ TOOL: Glob (line 3)
+┌─ TOOL: Glob
 │ Input:
 │   pattern: **/*.go
 └─
@@ -69,33 +69,33 @@ This is the type of output this tool handles best: verbose stream-json logs from
 
 ### Option 1: Download pre-built binary (recommended)
 
-Download the latest release for your platform from the [releases page](https://github.com/ariel-frischer/claude-code-clean-output/releases):
+Download the latest release for your platform from the [releases page](https://github.com/ariel-frischer/claude-clean/releases):
 
 ```bash
 # Linux (x86_64)
-curl -L -o claude-clean https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-linux-amd64
+curl -L -o claude-clean https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-linux-amd64
 chmod +x claude-clean
 sudo mv claude-clean /usr/local/bin/
 
 # macOS (Intel)
-curl -L -o claude-clean https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-darwin-amd64
+curl -L -o claude-clean https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-amd64
 chmod +x claude-clean
 sudo mv claude-clean /usr/local/bin/
 
 # macOS (Apple Silicon)
-curl -L -o claude-clean https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-darwin-arm64
+curl -L -o claude-clean https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-arm64
 chmod +x claude-clean
 sudo mv claude-clean /usr/local/bin/
 
 # Windows (download manually from releases page)
 # Or use PowerShell:
-# Invoke-WebRequest -Uri "https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/claude-clean-windows-amd64.exe" -OutFile "claude-clean.exe"
+# Invoke-WebRequest -Uri "https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-windows-amd64.exe" -OutFile "claude-clean.exe"
 ```
 
 **Verify the download (recommended):**
 ```bash
 # Download checksums
-curl -L -o SHA256SUMS https://github.com/ariel-frischer/claude-code-clean-output/releases/latest/download/SHA256SUMS
+curl -L -o SHA256SUMS https://github.com/ariel-frischer/claude-clean/releases/latest/download/SHA256SUMS
 
 # Verify (Linux/macOS)
 sha256sum -c SHA256SUMS --ignore-missing
@@ -229,36 +229,36 @@ The default style uses box drawing characters and colors for maximum readability
 - **TOOL RESULT ERROR** (Red): Tool execution errors
 
 Each message includes:
-- Line number from the source file
 - Message type and details
 - Content (truncated for readability)
-- Token usage statistics (with `-v` flag)
+- Line numbers (with `-l` flag)
+- Token usage statistics (with `-V` flag)
 
 ### Compact Style
 Minimal single-line format for quick scanning:
 ```
-SYS[init] L1 claude-sonnet-4-5-20250929 @/home/user/project
-AST L2 I'll help you with that task
-TOOL L3 Bash {description: "List files", command: "ls -la"}
-RES L4 total 24 drwxr-xr-x 3 user user 4096 ...
-OK L5 turns=2 1.23s $0.0012 in=150 out=45
+SYS[init] claude-sonnet-4-5-20250929 @/home/user/project
+AST I'll help you with that task
+TOOL Bash {description: "List files", command: "ls -la"}
+RES total 24 drwxr-xr-x 3 user user 4096 ...
+OK turns=2 1.23s $0.0012 in=150 out=45
 ```
 
 ### Minimal Style
 Simple indented format without boxes, but with colors:
 ```
-SYSTEM [init] (line 1)
+SYSTEM [init]
   Working Directory: /home/user/project
   Model: claude-sonnet-4-5-20250929
 
-ASSISTANT (line 2)
+ASSISTANT
   I'll help you with that task
 
-TOOL: Bash (line 3)
+TOOL: Bash
   Input:
     command: ls -la
 
-TOOL RESULT (line 4)
+TOOL RESULT
   total 24
   drwxr-xr-x 3 user user 4096 ...
 ```
@@ -266,38 +266,35 @@ TOOL RESULT (line 4)
 ### Plain Style
 No colors, no boxes - just plain text for logging or piping:
 ```
-SYSTEM [init] (line 1)
+SYSTEM [init]
   Working Directory: /home/user/project
   Model: claude-sonnet-4-5-20250929
 
-ASSISTANT (line 2)
+ASSISTANT
   I'll help you with that task
 ```
 
 ## Example Output
 
 ```
-┌─ SYSTEM [init] (line 1)
+┌─ SYSTEM [init]
 │ Working Directory: /home/user/project
 │ Model: claude-sonnet-4-5-20250929
 │ Claude Code: v2.0.25
 │ Tools: 19 available
 └─
 
-┌─ ASSISTANT (line 2)
+┌─ ASSISTANT
 │ I'll help you set up this Go project...
-│ Tokens: in=2 out=3 cache_create=17639
 └─
 
-┌─ TOOL: Bash (line 4)
-│ ID: toolu_011FM74Ft8CR2ji5uPhY2k6d
+┌─ TOOL: Bash
 │ Input:
 │   description: List repository contents
 │   command: ls -la
 └─
 
-┌─ TOOL RESULT (line 8)
-│ Tool ID: toolu_011FM74Ft8CR2ji5uPhY2k6d
+┌─ TOOL RESULT
 │ total 24
 │ drwxr-xr-x 3 user user 4096 Oct 21 12:00 .
 │ ...

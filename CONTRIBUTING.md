@@ -76,25 +76,31 @@ make clean   # Remove built binaries
 ```
 .
 ├── main.go              # Main parser implementation
+├── types.go             # Data structures
 ├── go.mod               # Go module definition
 ├── Makefile             # Build and development commands
 ├── README.md            # User-facing documentation
 ├── CONTRIBUTING.md      # This file
-└── mocks/               # Test data files
-    ├── claude-stream-json-simple.log
-    └── test-prompt.md
+├── mocks/               # Test data files
+├── tests/               # Unit tests
+└── scripts/
+    ├── hooks/           # Git hooks (install with setup-hooks.sh)
+    ├── setup-hooks.sh   # Install git hooks
+    ├── build-binaries.sh
+    └── install.sh
 ```
 
 ## Development Workflow
 
 1. **Fork and Clone**: Fork the repository and clone your fork
-2. **Create a Branch**: Create a feature branch for your changes
-3. **Make Changes**: Implement your feature or fix
-4. **Format and Check**: Run `make all` to format, vet, and build
-5. **Test**: Ensure `make test` passes (and add tests for new features)
-6. **Commit**: Write clear, descriptive commit messages
-7. **Push**: Push to your fork
-8. **Pull Request**: Open a PR with a clear description of changes
+2. **Setup Hooks**: Run `./scripts/setup-hooks.sh` to install git hooks
+3. **Create a Branch**: Create a feature branch for your changes
+4. **Make Changes**: Implement your feature or fix
+5. **Format and Check**: Run `make all` to format, vet, and build
+6. **Test**: Ensure `make test` passes (and add tests for new features)
+7. **Commit**: Write clear, descriptive commit messages
+8. **Push**: Push to your fork
+9. **Pull Request**: Open a PR with a clear description of changes
 
 ## Code Style
 

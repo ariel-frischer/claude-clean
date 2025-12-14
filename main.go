@@ -48,16 +48,36 @@ const (
 	StylePlain   OutputStyle = "plain"
 )
 
+// Version info (set by goreleaser or -ldflags)
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 // Command-line flags
 var (
-	verbose  = flag.Bool("v", false, "Show verbose output (tool IDs, token usage)")
-	help     = flag.Bool("h", false, "Show help message")
-	style    = flag.String("s", "default", "Output style: default, compact, minimal, plain")
-	useOAuth = flag.Bool("oauth", false, "Use OAuth (Claude Pro/Team plan) instead of API key")
+	showVersion = flag.Bool("version", false, "Show version information")
+	showVersionShort = flag.Bool("v", false, "Show version information (short)")
+	verbose     = flag.Bool("V", false, "Show verbose output (tool IDs, token usage)")
+	help        = flag.Bool("h", false, "Show help message")
+	style       = flag.String("s", "default", "Output style: default, compact, minimal, plain")
+	useOAuth    = flag.Bool("oauth", false, "Use OAuth (Claude Pro/Team plan) instead of API key")
+	showLineNum = flag.Bool("l", false, "Show line numbers in output")
 )
 
 // Global style setting
 var currentStyle OutputStyle
+
+func printVersion() {
+	fmt.Printf("%s version %s\n", binaryName(), version)
+	if commit != "none" {
+		fmt.Printf("  commit: %s\n", commit)
+	}
+	if date != "unknown" {
+		fmt.Printf("  built:  %s\n", date)
+	}
+}
 
 func printHelp() {
 	bin := binaryName()
@@ -68,8 +88,10 @@ func printHelp() {
 	fmt.Printf("  %s log.jsonl         Parse existing JSON log file\n", bin)
 	fmt.Printf("  cat log.jsonl | %s   Parse JSON from stdin\n", bin)
 	fmt.Println("\nOptions:")
-	fmt.Println("  -v            Show verbose output (tool IDs, token usage)")
+	fmt.Println("  -v, --version Show version information")
+	fmt.Println("  -V            Show verbose output (tool IDs, token usage)")
 	fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain")
+	fmt.Println("  -l            Show line numbers in output")
 	fmt.Println("  -oauth        Use OAuth (Claude Pro/Team plan) instead of API key")
 	fmt.Println("  -h, --help    Show this help message")
 	fmt.Println("\nStyles:")
@@ -88,6 +110,11 @@ func printHelp() {
 func main() {
 	flag.Usage = printHelp
 	flag.Parse()
+
+	if *showVersion || *showVersionShort {
+		printVersion()
+		os.Exit(0)
+	}
 
 	if *help {
 		printHelp()
@@ -212,7 +239,7 @@ func main() {
 			yellow.Fprintf(os.Stderr, "\nAll previous lines were processed successfully.\n")
 			yellow.Fprintf(os.Stderr, "Remaining lines after this point were not processed.\n")
 			yellow.Fprintf(os.Stderr, "\nIf this happens frequently, please report it at:\n")
-			yellow.Fprintf(os.Stderr, "https://github.com/anthropics/claude-code-clean-output/issues\n")
+			yellow.Fprintf(os.Stderr, "https://github.com/ariel-frischer/claude-clean/issues\n")
 			red.Fprintf(os.Stderr, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
 			// Exit with code 2 to indicate partial processing
 			os.Exit(2)
@@ -324,7 +351,7 @@ func displaySystemMessage(msg *StreamMessage, lineNum int) {
 	if msg.Subtype != "" {
 		cyan.Printf(" [%s]", msg.Subtype)
 	}
-	cyan.Printf(" (line %d)\n", lineNum)
+	gray.Printf("%s\n", formatLineNum(lineNum))
 
 	if msg.CWD != "" {
 		cyan.Printf("│ Working Directory: %s\n", msg.CWD)
@@ -371,7 +398,7 @@ func displayAssistantMessage(msg *StreamMessage, lineNum int) {
 	if len(textBlocks) > 0 {
 		boldGreen.Print("┌─ ")
 		boldGreen.Print("ASSISTANT")
-		gray.Printf(" (line %d)\n", lineNum)
+		gray.Printf("%s\n", formatLineNum(lineNum))
 
 		for _, text := range textBlocks {
 			green.Print("│ ")
@@ -393,7 +420,7 @@ func displayAssistantMessage(msg *StreamMessage, lineNum int) {
 func displayToolUse(tool *ContentBlock, lineNum int) {
 	boldYellow.Print("┌─ ")
 	boldYellow.Printf("TOOL: %s", tool.Name)
-	gray.Printf(" (line %d)\n", lineNum)
+	gray.Printf("%s\n", formatLineNum(lineNum))
 
 	if *verbose {
 		yellow.Printf("│ ID: %s\n", tool.ID)
@@ -484,7 +511,7 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 	if block.IsError {
 		boldRed.Print("┌─ ")
 		boldRed.Print("TOOL RESULT ERROR")
-		gray.Printf(" (line %d)\n", lineNum)
+		gray.Printf("%s\n", formatLineNum(lineNum))
 
 		if *verbose {
 			red.Printf("│ Tool ID: %s\n", block.ToolUseID)
@@ -509,7 +536,7 @@ func displayToolResult(block *ContentBlock, lineNum int) {
 	} else {
 		boldMagenta.Print("┌─ ")
 		boldMagenta.Print("TOOL RESULT")
-		gray.Printf(" (line %d)\n", lineNum)
+		gray.Printf("%s\n", formatLineNum(lineNum))
 
 		if *verbose {
 			gray.Printf("│ Tool ID: %s\n", block.ToolUseID)
@@ -573,7 +600,7 @@ func displayResultMessage(msg *StreamMessage, lineNum int) {
 		boldBlue.Print("┌─ ")
 		boldBlue.Print("RESULT: SUCCESS")
 	}
-	gray.Printf(" (line %d)\n", lineNum)
+	gray.Printf("%s\n", formatLineNum(lineNum))
 
 	// Show summary stats
 	if msg.NumTurns > 0 {
@@ -677,6 +704,22 @@ func displayUsageInline(usage *Usage, c *color.Color) {
 	c.Println()
 }
 
+// formatLineNum returns a formatted line number string if showLineNum is enabled, otherwise empty
+func formatLineNum(lineNum int) string {
+	if *showLineNum {
+		return fmt.Sprintf(" (line %d)", lineNum)
+	}
+	return ""
+}
+
+// formatLineNumCompact returns a compact line number format if showLineNum is enabled
+func formatLineNumCompact(lineNum int) string {
+	if *showLineNum {
+		return fmt.Sprintf(" L%d", lineNum)
+	}
+	return ""
+}
+
 // ============================================================================
 // COMPACT STYLE FORMATTERS
 // ============================================================================
@@ -699,7 +742,7 @@ func displaySystemMessageCompact(msg *StreamMessage, lineNum int) {
 	if msg.Subtype != "" {
 		cyan.Printf("[%s]", msg.Subtype)
 	}
-	gray.Printf(" L%d", lineNum)
+	gray.Printf("%s", formatLineNumCompact(lineNum))
 	if msg.Model != "" {
 		cyan.Printf(" %s", msg.Model)
 	}
@@ -718,8 +761,8 @@ func displayAssistantMessageCompact(msg *StreamMessage, lineNum int) {
 		switch block.Type {
 		case "text":
 			if block.Text != "" {
-				boldGreen.Print("AST ")
-				gray.Printf("L%d ", lineNum)
+				boldGreen.Print("AST")
+				gray.Printf("%s ", formatLineNumCompact(lineNum))
 				// Truncate long text to single line
 				text := strings.ReplaceAll(block.Text, "\n", " ")
 				if len(text) > 100 {
@@ -735,8 +778,8 @@ func displayAssistantMessageCompact(msg *StreamMessage, lineNum int) {
 }
 
 func displayToolUseCompact(tool *ContentBlock, lineNum int) {
-	boldYellow.Printf("TOOL ")
-	gray.Printf("L%d ", lineNum)
+	boldYellow.Printf("TOOL")
+	gray.Printf("%s ", formatLineNumCompact(lineNum))
 	yellow.Printf("%s", tool.Name)
 
 	// Show key inputs in compact form
@@ -781,11 +824,11 @@ func displayUserMessageCompact(msg *StreamMessage, lineNum int) {
 
 func displayToolResultCompact(block *ContentBlock, lineNum int) {
 	if block.IsError {
-		boldRed.Print("ERR ")
+		boldRed.Print("ERR")
 	} else {
-		boldMagenta.Print("RES ")
+		boldMagenta.Print("RES")
 	}
-	gray.Printf("L%d ", lineNum)
+	gray.Printf("%s ", formatLineNumCompact(lineNum))
 
 	contentStr := ""
 	switch v := block.Content.(type) {
@@ -813,11 +856,11 @@ func displayToolResultCompact(block *ContentBlock, lineNum int) {
 
 func displayResultMessageCompact(msg *StreamMessage, lineNum int) {
 	if msg.IsError {
-		boldRed.Print("FAIL ")
+		boldRed.Print("FAIL")
 	} else {
-		boldBlue.Print("OK ")
+		boldBlue.Print("OK")
 	}
-	gray.Printf("L%d", lineNum)
+	gray.Printf("%s", formatLineNumCompact(lineNum))
 
 	if msg.NumTurns > 0 {
 		blue.Printf(" turns=%d", msg.NumTurns)
@@ -866,7 +909,7 @@ func displaySystemMessageMinimal(msg *StreamMessage, lineNum int) {
 	if msg.Subtype != "" {
 		cyan.Printf(" [%s]", msg.Subtype)
 	}
-	gray.Printf(" (line %d)\n", lineNum)
+	gray.Printf("%s\n", formatLineNum(lineNum))
 
 	if msg.CWD != "" {
 		cyan.Printf("  Working Directory: %s\n", msg.CWD)
@@ -906,7 +949,7 @@ func displayAssistantMessageMinimal(msg *StreamMessage, lineNum int) {
 	// Display text blocks
 	if len(textBlocks) > 0 {
 		boldGreen.Printf("ASSISTANT")
-		gray.Printf(" (line %d)\n", lineNum)
+		gray.Printf("%s\n", formatLineNum(lineNum))
 
 		for _, text := range textBlocks {
 			white.Printf("  %s\n", text)
@@ -933,7 +976,7 @@ func displayAssistantMessageMinimal(msg *StreamMessage, lineNum int) {
 
 func displayToolUseMinimal(tool *ContentBlock, lineNum int) {
 	boldYellow.Printf("TOOL: %s", tool.Name)
-	gray.Printf(" (line %d)\n", lineNum)
+	gray.Printf("%s\n", formatLineNum(lineNum))
 
 	if *verbose {
 		yellow.Printf("  ID: %s\n", tool.ID)
@@ -1009,7 +1052,7 @@ func displayUserMessageMinimal(msg *StreamMessage, lineNum int) {
 func displayToolResultMinimal(block *ContentBlock, lineNum int) {
 	if block.IsError {
 		boldRed.Printf("TOOL RESULT ERROR")
-		gray.Printf(" (line %d)\n", lineNum)
+		gray.Printf("%s\n", formatLineNum(lineNum))
 
 		if *verbose {
 			red.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -1031,7 +1074,7 @@ func displayToolResultMinimal(block *ContentBlock, lineNum int) {
 		white.Printf("  %s\n", contentStr)
 	} else {
 		boldMagenta.Printf("TOOL RESULT")
-		gray.Printf(" (line %d)\n", lineNum)
+		gray.Printf("%s\n", formatLineNum(lineNum))
 
 		if *verbose {
 			gray.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -1082,7 +1125,7 @@ func displayResultMessageMinimal(msg *StreamMessage, lineNum int) {
 	} else {
 		boldBlue.Printf("RESULT: SUCCESS")
 	}
-	gray.Printf(" (line %d)\n", lineNum)
+	gray.Printf("%s\n", formatLineNum(lineNum))
 
 	if msg.NumTurns > 0 {
 		blue.Printf("  Turns: %d\n", msg.NumTurns)
@@ -1171,7 +1214,7 @@ func displaySystemMessagePlain(msg *StreamMessage, lineNum int) {
 	if msg.Subtype != "" {
 		fmt.Printf(" [%s]", msg.Subtype)
 	}
-	fmt.Printf(" (line %d)\n", lineNum)
+	fmt.Printf("%s\n", formatLineNum(lineNum))
 
 	if msg.CWD != "" {
 		fmt.Printf("  Working Directory: %s\n", msg.CWD)
@@ -1210,7 +1253,7 @@ func displayAssistantMessagePlain(msg *StreamMessage, lineNum int) {
 
 	// Display text blocks
 	if len(textBlocks) > 0 {
-		fmt.Printf("ASSISTANT (line %d)\n", lineNum)
+		fmt.Printf("ASSISTANT%s\n", formatLineNum(lineNum))
 
 		for _, text := range textBlocks {
 			fmt.Printf("  %s\n", text)
@@ -1236,7 +1279,7 @@ func displayAssistantMessagePlain(msg *StreamMessage, lineNum int) {
 }
 
 func displayToolUsePlain(tool *ContentBlock, lineNum int) {
-	fmt.Printf("TOOL: %s (line %d)\n", tool.Name, lineNum)
+	fmt.Printf("TOOL: %s%s\n", tool.Name, formatLineNum(lineNum))
 
 	if *verbose {
 		fmt.Printf("  ID: %s\n", tool.ID)
@@ -1311,7 +1354,7 @@ func displayUserMessagePlain(msg *StreamMessage, lineNum int) {
 
 func displayToolResultPlain(block *ContentBlock, lineNum int) {
 	if block.IsError {
-		fmt.Printf("TOOL RESULT ERROR (line %d)\n", lineNum)
+		fmt.Printf("TOOL RESULT ERROR%s\n", formatLineNum(lineNum))
 
 		if *verbose {
 			fmt.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -1332,7 +1375,7 @@ func displayToolResultPlain(block *ContentBlock, lineNum int) {
 
 		fmt.Printf("  %s\n", contentStr)
 	} else {
-		fmt.Printf("TOOL RESULT (line %d)\n", lineNum)
+		fmt.Printf("TOOL RESULT%s\n", formatLineNum(lineNum))
 
 		if *verbose {
 			fmt.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -1379,9 +1422,9 @@ func displayToolResultPlain(block *ContentBlock, lineNum int) {
 
 func displayResultMessagePlain(msg *StreamMessage, lineNum int) {
 	if msg.IsError {
-		fmt.Printf("RESULT: ERROR (line %d)\n", lineNum)
+		fmt.Printf("RESULT: ERROR%s\n", formatLineNum(lineNum))
 	} else {
-		fmt.Printf("RESULT: SUCCESS (line %d)\n", lineNum)
+		fmt.Printf("RESULT: SUCCESS%s\n", formatLineNum(lineNum))
 	}
 
 	if msg.NumTurns > 0 {
