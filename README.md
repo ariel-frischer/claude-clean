@@ -67,41 +67,33 @@ This is the type of output this tool handles best: verbose stream-json logs from
 
 ## Installation
 
-### Option 1: Download pre-built binary (recommended)
-
-Download the latest release for your platform from the [releases page](https://github.com/ariel-frischer/claude-clean/releases):
+### Option 1: One-line installer (recommended)
 
 ```bash
-# Linux (x86_64)
-curl -L -o claude-clean https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-linux-amd64
-chmod +x claude-clean
-sudo mv claude-clean /usr/local/bin/
-
-# macOS (Intel)
-curl -L -o claude-clean https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-amd64
-chmod +x claude-clean
-sudo mv claude-clean /usr/local/bin/
-
-# macOS (Apple Silicon)
-curl -L -o claude-clean https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-arm64
-chmod +x claude-clean
-sudo mv claude-clean /usr/local/bin/
-
-# Windows (download manually from releases page)
-# Or use PowerShell:
-# Invoke-WebRequest -Uri "https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-windows-amd64.exe" -OutFile "claude-clean.exe"
+curl -fsSL https://raw.githubusercontent.com/ariel-frischer/claude-clean/main/install.sh | sh
 ```
 
-**Verify the download (recommended):**
+This automatically detects your OS/architecture, downloads the correct binary, and installs it to `/usr/local/bin` (or `~/.local/bin` if no sudo access).
+
+### Option 2: Manual download
+
+Download from the [releases page](https://github.com/ariel-frischer/claude-clean/releases):
+
+| Platform | Download |
+|----------|----------|
+| Linux (x86_64) | [claude-clean-linux-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-linux-amd64) |
+| Linux (ARM64) | [claude-clean-linux-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-linux-arm64) |
+| macOS (Intel) | [claude-clean-darwin-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-amd64) |
+| macOS (Apple Silicon) | [claude-clean-darwin-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-arm64) |
+| Windows | [claude-clean-windows-amd64.exe](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-windows-amd64.exe) |
+
+After downloading, make it executable and move to your PATH:
 ```bash
-# Download checksums
-curl -L -o SHA256SUMS https://github.com/ariel-frischer/claude-clean/releases/latest/download/SHA256SUMS
-
-# Verify (Linux/macOS)
-sha256sum -c SHA256SUMS --ignore-missing
+chmod +x claude-clean-*
+sudo mv claude-clean-* /usr/local/bin/claude-clean
 ```
 
-### Option 2: Build from source
+### Option 3: Build from source
 
 ```bash
 go build -o claude-clean
