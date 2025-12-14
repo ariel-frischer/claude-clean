@@ -22,12 +22,16 @@ help:
 	@echo "  deps    (d)   - Download dependencies"
 	@echo "  all     (a)   - Format, vet, and build"
 	@echo ""
-	@echo "Release targets:"
+	@echo "Release targets (auto-detects github/gitlab from remote, override with PLATFORM=github|gitlab):"
 	@echo "  snapshot (s)  - Build snapshot release locally (no publish)"
 	@echo "  patch   (p)   - Release patch bump (v0.0.X)"
 	@echo "  minor         - Release minor bump (v0.X.0)"
 	@echo "  major         - Release major bump (vX.0.0)"
 	@echo "  release       - Release specific version (make release VERSION=v1.0.0)"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make p                    # auto-detect platform"
+	@echo "  make p PLATFORM=github    # force GitHub release"
 
 # Build the binary
 build:
@@ -96,26 +100,28 @@ MAJOR := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f1)
 MINOR := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f2)
 PATCH := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f3)
 
-# Detect git remote platform (github or gitlab)
+# Platform detection (override with PLATFORM=github or PLATFORM=gitlab)
 REMOTE_URL := $(shell git remote get-url origin 2>/dev/null)
-IS_GITHUB := $(shell echo $(REMOTE_URL) | grep -q github && echo 1 || echo 0)
-IS_GITLAB := $(shell echo $(REMOTE_URL) | grep -q gitlab && echo 1 || echo 0)
+DETECTED_PLATFORM := $(shell echo $(REMOTE_URL) | grep -q github && echo github || (echo $(REMOTE_URL) | grep -q gitlab && echo gitlab || echo unknown))
+PLATFORM ?= $(DETECTED_PLATFORM)
 
-# Create a release: make release VERSION=v1.0.0
+# Create a release: make release VERSION=v1.0.0 [PLATFORM=github|gitlab]
 release:
 	@if [ -z "$(VERSION)" ]; then \
 		echo "Usage: make release VERSION=v1.0.0"; \
 		echo "  or use: make patch | make minor | make major"; \
+		echo "  override platform: PLATFORM=github or PLATFORM=gitlab"; \
 		exit 1; \
 	fi
+	@echo "Releasing $(VERSION) to $(PLATFORM)..."
 	git tag -a $(VERSION) -m "Release $(VERSION)"
 	git push origin $(VERSION)
-ifeq ($(IS_GITHUB),1)
-	GITHUB_TOKEN=$$(gh auth token) goreleaser release --clean
-else ifeq ($(IS_GITLAB),1)
-	goreleaser release --clean
+ifeq ($(PLATFORM),github)
+	unset GITLAB_TOKEN && GITHUB_TOKEN=$$(gh auth token) goreleaser release --clean
+else ifeq ($(PLATFORM),gitlab)
+	unset GITHUB_TOKEN && goreleaser release --clean
 else
-	@echo "Error: Could not detect GitHub or GitLab from remote URL"
+	@echo "Error: Unknown platform '$(PLATFORM)'. Use PLATFORM=github or PLATFORM=gitlab"
 	@exit 1
 endif
 
