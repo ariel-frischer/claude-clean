@@ -105,7 +105,7 @@ release:
 	fi
 	git tag -a $(VERSION) -m "Release $(VERSION)"
 	git push origin $(VERSION)
-	GITHUB_TOKEN=$$(gh auth token) goreleaser release --clean
+	GITLAB_TOKEN=$$(glab auth token) goreleaser release --clean
 
 # Auto-bump releases
 patch:

@@ -43,6 +43,6 @@ changelog:
       - Merge branch
 
 release:
-  github:
+  gitlab:
     owner: ariel-frischer
     name: claude-clean
