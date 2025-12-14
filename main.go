@@ -48,9 +48,18 @@ const (
 	StylePlain   OutputStyle = "plain"
 )
 
+// Version info (set by goreleaser or -ldflags)
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 // Command-line flags
 var (
-	verbose     = flag.Bool("v", false, "Show verbose output (tool IDs, token usage)")
+	showVersion = flag.Bool("version", false, "Show version information")
+	showVersionShort = flag.Bool("v", false, "Show version information (short)")
+	verbose     = flag.Bool("V", false, "Show verbose output (tool IDs, token usage)")
 	help        = flag.Bool("h", false, "Show help message")
 	style       = flag.String("s", "default", "Output style: default, compact, minimal, plain")
 	useOAuth    = flag.Bool("oauth", false, "Use OAuth (Claude Pro/Team plan) instead of API key")
@@ -59,6 +68,16 @@ var (
 
 // Global style setting
 var currentStyle OutputStyle
+
+func printVersion() {
+	fmt.Printf("%s version %s\n", binaryName(), version)
+	if commit != "none" {
+		fmt.Printf("  commit: %s\n", commit)
+	}
+	if date != "unknown" {
+		fmt.Printf("  built:  %s\n", date)
+	}
+}
 
 func printHelp() {
 	bin := binaryName()
@@ -69,7 +88,8 @@ func printHelp() {
 	fmt.Printf("  %s log.jsonl         Parse existing JSON log file\n", bin)
 	fmt.Printf("  cat log.jsonl | %s   Parse JSON from stdin\n", bin)
 	fmt.Println("\nOptions:")
-	fmt.Println("  -v            Show verbose output (tool IDs, token usage)")
+	fmt.Println("  -v, --version Show version information")
+	fmt.Println("  -V            Show verbose output (tool IDs, token usage)")
 	fmt.Println("  -s STYLE      Output style: default, compact, minimal, plain")
 	fmt.Println("  -l            Show line numbers in output")
 	fmt.Println("  -oauth        Use OAuth (Claude Pro/Team plan) instead of API key")
@@ -90,6 +110,11 @@ func printHelp() {
 func main() {
 	flag.Usage = printHelp
 	flag.Parse()
+
+	if *showVersion || *showVersionShort {
+		printVersion()
+		os.Exit(0)
+	}
 
 	if *help {
 		printHelp()

@@ -1,4 +1,5 @@
 .PHONY: help build install run run-verbose test clean fmt vet deps all build-release release
+.PHONY: b i r rv t c f v d a
 
 # Binary name
 BINARY_NAME=cclean
@@ -10,16 +11,16 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  build         - Build the binary"
-	@echo "  install       - Install cclean to ~/.local/bin"
-	@echo "  run           - Run with sample mock data"
-	@echo "  run-verbose   - Run with verbose output on sample data"
-	@echo "  test          - Run tests"
-	@echo "  clean         - Remove built binaries"
-	@echo "  fmt           - Format code with gofmt"
-	@echo "  vet           - Run go vet"
-	@echo "  deps          - Download dependencies"
-	@echo "  all           - Format, vet, and build"
+	@echo "  build   (b)   - Build the binary"
+	@echo "  install (i)   - Install cclean to ~/.local/bin"
+	@echo "  run     (r)   - Run with sample mock data"
+	@echo "  run-verbose (rv) - Run with verbose output on sample data"
+	@echo "  test    (t)   - Run tests"
+	@echo "  clean   (c)   - Remove built binaries"
+	@echo "  fmt     (f)   - Format code with gofmt"
+	@echo "  vet     (v)   - Run go vet"
+	@echo "  deps    (d)   - Download dependencies"
+	@echo "  all     (a)   - Format, vet, and build"
 	@echo ""
 	@echo "Release targets:"
 	@echo "  build-release - Build binaries for all platforms (Linux, macOS, Windows)"
@@ -47,7 +48,7 @@ run: build
 run-verbose: build
 	@echo "Running $(BINARY_NAME) with verbose output..."
 	@if [ -f mocks/claude-stream-json-simple.jsonl ]; then \
-		./$(BINARY_NAME) -v mocks/claude-stream-json-simple.jsonl; \
+		./$(BINARY_NAME) -V mocks/claude-stream-json-simple.jsonl; \
 	else \
 		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BINARY_NAME)"; \
 	fi
@@ -94,3 +95,15 @@ release: build-release
 		exit 1; \
 	fi
 	@./scripts/create-release.sh $(VERSION) "$(NOTES)"
+
+# Abbreviations
+b: build
+i: install
+r: run
+rv: run-verbose
+t: test
+c: clean
+f: fmt
+v: vet
+d: deps
+a: all
