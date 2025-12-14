@@ -212,7 +212,7 @@ func main() {
 			yellow.Fprintf(os.Stderr, "\nAll previous lines were processed successfully.\n")
 			yellow.Fprintf(os.Stderr, "Remaining lines after this point were not processed.\n")
 			yellow.Fprintf(os.Stderr, "\nIf this happens frequently, please report it at:\n")
-			yellow.Fprintf(os.Stderr, "https://github.com/anthropics/claude-code-clean-output/issues\n")
+			yellow.Fprintf(os.Stderr, "https://github.com/ariel-frischer/claude-code-clean-output/issues\n")
 			red.Fprintf(os.Stderr, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n")
 			// Exit with code 2 to indicate partial processing
 			os.Exit(2)

@@ -9,7 +9,7 @@ import (
 
 // TestParseSystemMessage tests parsing of a system message from the mock data
 func TestParseSystemMessage(t *testing.T) {
-	jsonLine := `{"type":"system","subtype":"init","cwd":"/home/ari/repos/claude-code-clean-output","session_id":"test-session","model":"claude-sonnet-4-5-20250929","claude_code_version":"2.0.25"}`
+	jsonLine := `{"type":"system","subtype":"init","cwd":"/home/user/project","session_id":"test-session","model":"claude-sonnet-4-5-20250929","claude_code_version":"2.0.25"}`
 
 	var msg StreamMessage
 	err := json.Unmarshal([]byte(jsonLine), &msg)
