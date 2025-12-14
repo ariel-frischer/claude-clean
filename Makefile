@@ -96,7 +96,12 @@ MAJOR := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f1)
 MINOR := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f2)
 PATCH := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f3)
 
-# Create a GitHub release: make release VERSION=v1.0.0
+# Detect git remote platform (github or gitlab)
+REMOTE_URL := $(shell git remote get-url origin 2>/dev/null)
+IS_GITHUB := $(shell echo $(REMOTE_URL) | grep -q github && echo 1 || echo 0)
+IS_GITLAB := $(shell echo $(REMOTE_URL) | grep -q gitlab && echo 1 || echo 0)
+
+# Create a release: make release VERSION=v1.0.0
 release:
 	@if [ -z "$(VERSION)" ]; then \
 		echo "Usage: make release VERSION=v1.0.0"; \
@@ -105,7 +110,14 @@ release:
 	fi
 	git tag -a $(VERSION) -m "Release $(VERSION)"
 	git push origin $(VERSION)
+ifeq ($(IS_GITHUB),1)
+	GITHUB_TOKEN=$$(gh auth token) goreleaser release --clean
+else ifeq ($(IS_GITLAB),1)
 	goreleaser release --clean
+else
+	@echo "Error: Could not detect GitHub or GitLab from remote URL"
+	@exit 1
+endif
 
 # Auto-bump releases
 patch:
