@@ -11,7 +11,7 @@
 
 2. Install git hooks:
    ```bash
-   ./.dev/scripts/setup-hooks.sh
+   ./scripts/setup-hooks.sh
    ```
 
 3. Build and test:
@@ -58,16 +58,22 @@ To bypass (if you really need to):
 git merge --no-verify main
 ```
 
+### post-merge
+
+Auto-cleans `.dev/` directory when merging to `main`. This runs automatically after `git merge dev` on main, removing `.dev/` and amending the merge commit.
+
 ## Releasing
 
 Releases are made from `main`:
 
 ```bash
 git checkout main
-git merge dev
+git merge dev        # post-merge hook auto-removes .dev/
 git push origin main
 git tag v0.x.x
 git push origin v0.x.x
 ```
+
+The `post-merge` hook automatically removes `.dev/` from the merge commit, so you don't need to do anything manually.
 
 CI will build and publish binaries automatically.
