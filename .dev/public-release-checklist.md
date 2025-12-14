@@ -117,11 +117,16 @@ Checklist for preparing this repository for public release.
 - [x] .gitignore
 - [x] Makefile with build/test/fmt/vet targets
 - [x] Tests exist and pass
+- [x] .github/ directory with issue templates, PR template, workflows
+- [x] CODE_OF_CONDUCT.md
+- [x] CI/CD GitHub Actions (ci.yml, release.yml)
+- [x] README badges (CI, Release, Go version, License)
+- [x] Reviewed mocks/ - no sensitive content found
+- [x] Moved CLAUDE.md to .dev/
+- [x] dependabot.yml for automated dependency updates
+- [x] Removed binary from git history (3MB claude-clean-output)
 
 ### Needs Attention
-- [ ] No .github/ directory (issue templates, PR templates, workflows)
-- [ ] No CODE_OF_CONDUCT.md
-- [ ] No CI/CD GitHub Actions
-- [ ] No README badges
-- [ ] Review mocks/ for any sensitive content
-- [ ] Consider moving CLAUDE.md to .dev/ (it contains internal architecture details)
+- [ ] Force push to remote (history was rewritten)
+- [ ] Run full test suite one more time before release
+- [ ] Clone repo fresh and verify build works

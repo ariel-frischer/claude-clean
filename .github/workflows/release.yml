@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Build binaries
+      run: |
+        VERSION=${GITHUB_REF_NAME}
+
+        # Linux AMD64
+        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o claude-clean-linux-amd64 .
+
+        # Linux ARM64
+        GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o claude-clean-linux-arm64 .
+
+        # macOS AMD64
+        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o claude-clean-darwin-amd64 .
+
+        # macOS ARM64 (Apple Silicon)
+        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o claude-clean-darwin-arm64 .
+
+        # Windows AMD64
+        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o claude-clean-windows-amd64.exe .
+
+    - name: Generate checksums
+      run: |
+        sha256sum claude-clean-* > SHA256SUMS
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          claude-clean-linux-amd64
+          claude-clean-linux-arm64
+          claude-clean-darwin-amd64
+          claude-clean-darwin-arm64
+          claude-clean-windows-amd64.exe
+          SHA256SUMS
+        generate_release_notes: true
+        draft: false
+        prerelease: false
