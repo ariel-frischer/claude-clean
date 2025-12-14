@@ -2,6 +2,7 @@
 cclean
 claude-clean
 release/
+dist/
 
 # Dev tooling
 .claude/
