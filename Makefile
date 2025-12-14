@@ -1,5 +1,5 @@
-.PHONY: help build install run run-verbose test clean fmt vet deps all build-release release
-.PHONY: b i r rv t c f v d a
+.PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release
+.PHONY: b i r rv t c f v d a s
 
 # Binary name
 BINARY_NAME=cclean
@@ -23,8 +23,8 @@ help:
 	@echo "  all     (a)   - Format, vet, and build"
 	@echo ""
 	@echo "Release targets:"
-	@echo "  build-release - Build binaries for all platforms (Linux, macOS, Windows)"
-	@echo "  release       - Create a GitHub release (requires version, e.g., make release VERSION=v0.1.0)"
+	@echo "  snapshot (s)  - Build snapshot release locally (no publish)"
+	@echo "  release       - Create a GitHub release (requires git tag, uses goreleaser)"
 
 # Build the binary
 build:
@@ -83,18 +83,13 @@ deps:
 # Build everything
 all: fmt vet build
 
-# Build binaries for all platforms
-build-release:
-	@./scripts/build-binaries.sh $(VERSION)
+# Build snapshot release locally (no publish)
+snapshot:
+	goreleaser release --snapshot --clean
 
-# Create a GitHub release
-release: build-release
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Error: VERSION is required"; \
-		echo "Usage: make release VERSION=v0.1.0 [NOTES='Release notes']"; \
-		exit 1; \
-	fi
-	@./scripts/create-release.sh $(VERSION) "$(NOTES)"
+# Create a GitHub release (requires GITHUB_TOKEN and git tag)
+release:
+	goreleaser release --clean
 
 # Abbreviations
 b: build
@@ -107,3 +102,4 @@ f: fmt
 v: vet
 d: deps
 a: all
+s: snapshot
