@@ -1,4 +1,4 @@
-.PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release patch minor major
+.PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release patch minor major dev-setup
 .PHONY: b i r rv t c f v d a s p
 
 # Binary name
@@ -21,6 +21,7 @@ help:
 	@echo "  vet     (v)   - Run go vet"
 	@echo "  deps    (d)   - Download dependencies"
 	@echo "  all     (a)   - Format, vet, and build"
+	@echo "  dev-setup     - Install git hooks for development"
 	@echo ""
 	@echo "Release targets (auto-detects github/gitlab from remote, override with PLATFORM=github|gitlab):"
 	@echo "  snapshot (s)  - Build snapshot release locally (no publish)"
@@ -86,6 +87,10 @@ deps:
 	@echo "Downloading dependencies..."
 	go mod download
 	go mod tidy
+
+# Install git hooks
+dev-setup:
+	@./scripts/setup-hooks.sh
 
 # Build everything
 all: fmt vet build

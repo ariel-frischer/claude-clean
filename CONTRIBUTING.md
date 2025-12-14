@@ -90,10 +90,55 @@ make clean   # Remove built binaries
     └── install.sh
 ```
 
+## Branch Workflow
+
+This project uses two main branches:
+
+- **`main`** - Stable release branch (public, no `.dev/` files)
+- **`dev`** - Development branch (has `.dev/` files with internal docs/scripts)
+
+### For Contributors
+
+If you're contributing via PR, just fork and create a feature branch - you don't need to worry about the dev/main split. Your PR will be merged to the appropriate branch.
+
+### For Maintainers
+
+| Action | Allowed |
+|--------|---------|
+| Merge `dev` → `main` | Yes |
+| Rebase `dev` from `main` | Yes (preferred) |
+| Merge `main` → `dev` | No (use rebase) |
+
+The `dev` branch contains `.dev/` files that shouldn't exist on `main`. Using rebase instead of merge keeps history clean.
+
+#### Syncing dev with main
+
+```bash
+git checkout dev
+git rebase main
+git push origin dev --force-with-lease
+```
+
+## Git Hooks
+
+Install hooks after cloning:
+
+```bash
+make dev-setup
+```
+
+### pre-merge-commit
+
+Prevents accidentally merging `main` into `dev` branches. Suggests using `git rebase main` instead.
+
+### post-merge
+
+Auto-cleans `.dev/` directory when merging to `main`. Runs automatically after `git merge dev` on main.
+
 ## Development Workflow
 
 1. **Fork and Clone**: Fork the repository and clone your fork
-2. **Setup Hooks**: Run `./scripts/setup-hooks.sh` to install git hooks
+2. **Setup Hooks**: Run `make dev-setup` to install git hooks
 3. **Create a Branch**: Create a feature branch for your changes
 4. **Make Changes**: Implement your feature or fix
 5. **Format and Check**: Run `make all` to format, vet, and build
@@ -150,12 +195,25 @@ make deps  # Tidy up
 - Reference issues if applicable (e.g., "Fix #123: Handle empty messages")
 - Keep commits focused on a single change
 
+## Releasing (Maintainers)
+
+Releases are made from `main`:
+
+```bash
+git checkout main
+git merge dev        # post-merge hook auto-removes .dev/
+git push origin main
+git tag v0.x.x
+git push origin v0.x.x
+```
+
+The `post-merge` hook automatically removes `.dev/` from the merge commit. CI will build and publish binaries automatically.
+
 ## Getting Help
 
 - Check the README.md for user documentation
 - Review existing code for patterns and conventions
 - Open an issue for questions or discussions
-- Reach out to maintainers if you need guidance
 
 ## License
 
