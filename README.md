@@ -1,5 +1,10 @@
 # Claude Clean
 
+[![CI](https://github.com/ariel-frischer/claude-code-clean-output/actions/workflows/ci.yml/badge.svg)](https://github.com/ariel-frischer/claude-code-clean-output/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ariel-frischer/claude-code-clean-output)](https://github.com/ariel-frischer/claude-code-clean-output/releases)
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A beautiful terminal parser for Claude Code's streaming JSON output. Transforms the raw stream-json log format into clean, colorful, and readable terminal output.
 
 ## What is this for?

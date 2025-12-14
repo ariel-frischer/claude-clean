@@ -41,11 +41,15 @@ echo ""
 echo "✓ Binaries built successfully in ${OUTPUT_DIR}/"
 ls -lh "${OUTPUT_DIR}"
 
-# Generate checksums
+# Generate checksums (cross-platform: Linux uses sha256sum, macOS uses shasum)
 echo ""
 echo "Generating checksums..."
 cd "${OUTPUT_DIR}"
-sha256sum ${BINARY_NAME}-* > SHA256SUMS
+if command -v sha256sum &> /dev/null; then
+    sha256sum ${BINARY_NAME}-* > SHA256SUMS
+else
+    shasum -a 256 ${BINARY_NAME}-* > SHA256SUMS
+fi
 cd ..
 
 echo "✓ Checksums generated: ${OUTPUT_DIR}/SHA256SUMS"
