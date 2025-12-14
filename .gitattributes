@@ -1,0 +1,2 @@
+# Dev-only files - keep main's version during merges
+.dev/** merge=ours
