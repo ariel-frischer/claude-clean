@@ -1,5 +1,5 @@
-.PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release
-.PHONY: b i r rv t c f v d a s
+.PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release patch minor major
+.PHONY: b i r rv t c f v d a s p
 
 # Binary name
 BINARY_NAME=cclean
@@ -24,7 +24,10 @@ help:
 	@echo ""
 	@echo "Release targets:"
 	@echo "  snapshot (s)  - Build snapshot release locally (no publish)"
-	@echo "  release       - Create a GitHub release (requires git tag, uses goreleaser)"
+	@echo "  patch   (p)   - Release patch bump (v0.0.X)"
+	@echo "  minor         - Release minor bump (v0.X.0)"
+	@echo "  major         - Release major bump (vX.0.0)"
+	@echo "  release       - Release specific version (make release VERSION=v1.0.0)"
 
 # Build the binary
 build:
@@ -87,9 +90,32 @@ all: fmt vet build
 snapshot:
 	goreleaser release --snapshot --clean
 
-# Create a GitHub release (requires GITHUB_TOKEN and git tag)
+# Get current version from git tags (defaults to v0.0.0 if no tags)
+CURRENT_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+MAJOR := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f1)
+MINOR := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f2)
+PATCH := $(shell echo $(CURRENT_VERSION) | sed 's/v//' | cut -d. -f3)
+
+# Create a GitHub release: make release VERSION=v1.0.0
 release:
-	goreleaser release --clean
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Usage: make release VERSION=v1.0.0"; \
+		echo "  or use: make patch | make minor | make major"; \
+		exit 1; \
+	fi
+	git tag -a $(VERSION) -m "Release $(VERSION)"
+	git push origin $(VERSION)
+	GITHUB_TOKEN=$$(gh auth token) goreleaser release --clean
+
+# Auto-bump releases
+patch:
+	@$(MAKE) release VERSION=v$(MAJOR).$(MINOR).$(shell echo $$(($(PATCH)+1)))
+
+minor:
+	@$(MAKE) release VERSION=v$(MAJOR).$(shell echo $$(($(MINOR)+1))).0
+
+major:
+	@$(MAKE) release VERSION=v$(shell echo $$(($(MAJOR)+1))).0.0
 
 # Abbreviations
 b: build
@@ -103,3 +129,4 @@ v: vet
 d: deps
 a: all
 s: snapshot
+p: patch
