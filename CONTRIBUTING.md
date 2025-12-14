@@ -76,13 +76,18 @@ make clean   # Remove built binaries
 ```
 .
 ├── main.go              # Main parser implementation
+├── types.go             # Data structures
 ├── go.mod               # Go module definition
 ├── Makefile             # Build and development commands
 ├── README.md            # User-facing documentation
 ├── CONTRIBUTING.md      # This file
-└── mocks/               # Test data files
-    ├── claude-stream-json-simple.log
-    └── test-prompt.md
+├── mocks/               # Test data files
+├── tests/               # Unit tests
+└── scripts/
+    ├── hooks/           # Git hooks (install with setup-hooks.sh)
+    ├── setup-hooks.sh   # Install git hooks
+    ├── build-binaries.sh
+    └── install.sh
 ```
 
 ## Development Workflow
