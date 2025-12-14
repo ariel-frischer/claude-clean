@@ -28,18 +28,18 @@ This produces a stream of JSON objects that are difficult to read in real-time. 
 ### After (With Claude Clean):
 
 ```
-┌─ SYSTEM [init] (line 1)
+┌─ SYSTEM [init]
 │ Working Directory: /home/user/project
 │ Model: claude-sonnet-4-5-20250929
 │ Claude Code: v2.0.25
 │ Tools: 19 available
 └─
 
-┌─ ASSISTANT (line 2)
+┌─ ASSISTANT
 │ I'll run a comprehensive diagnostic using all the requested tools.
 └─
 
-┌─ TOOL: Glob (line 3)
+┌─ TOOL: Glob
 │ Input:
 │   pattern: **/*.go
 └─
@@ -229,36 +229,36 @@ The default style uses box drawing characters and colors for maximum readability
 - **TOOL RESULT ERROR** (Red): Tool execution errors
 
 Each message includes:
-- Line number from the source file
 - Message type and details
 - Content (truncated for readability)
-- Token usage statistics (with `-v` flag)
+- Line numbers (with `-l` flag)
+- Token usage statistics (with `-V` flag)
 
 ### Compact Style
 Minimal single-line format for quick scanning:
 ```
-SYS[init] L1 claude-sonnet-4-5-20250929 @/home/user/project
-AST L2 I'll help you with that task
-TOOL L3 Bash {description: "List files", command: "ls -la"}
-RES L4 total 24 drwxr-xr-x 3 user user 4096 ...
-OK L5 turns=2 1.23s $0.0012 in=150 out=45
+SYS[init] claude-sonnet-4-5-20250929 @/home/user/project
+AST I'll help you with that task
+TOOL Bash {description: "List files", command: "ls -la"}
+RES total 24 drwxr-xr-x 3 user user 4096 ...
+OK turns=2 1.23s $0.0012 in=150 out=45
 ```
 
 ### Minimal Style
 Simple indented format without boxes, but with colors:
 ```
-SYSTEM [init] (line 1)
+SYSTEM [init]
   Working Directory: /home/user/project
   Model: claude-sonnet-4-5-20250929
 
-ASSISTANT (line 2)
+ASSISTANT
   I'll help you with that task
 
-TOOL: Bash (line 3)
+TOOL: Bash
   Input:
     command: ls -la
 
-TOOL RESULT (line 4)
+TOOL RESULT
   total 24
   drwxr-xr-x 3 user user 4096 ...
 ```
@@ -266,38 +266,35 @@ TOOL RESULT (line 4)
 ### Plain Style
 No colors, no boxes - just plain text for logging or piping:
 ```
-SYSTEM [init] (line 1)
+SYSTEM [init]
   Working Directory: /home/user/project
   Model: claude-sonnet-4-5-20250929
 
-ASSISTANT (line 2)
+ASSISTANT
   I'll help you with that task
 ```
 
 ## Example Output
 
 ```
-┌─ SYSTEM [init] (line 1)
+┌─ SYSTEM [init]
 │ Working Directory: /home/user/project
 │ Model: claude-sonnet-4-5-20250929
 │ Claude Code: v2.0.25
 │ Tools: 19 available
 └─
 
-┌─ ASSISTANT (line 2)
+┌─ ASSISTANT
 │ I'll help you set up this Go project...
-│ Tokens: in=2 out=3 cache_create=17639
 └─
 
-┌─ TOOL: Bash (line 4)
-│ ID: toolu_011FM74Ft8CR2ji5uPhY2k6d
+┌─ TOOL: Bash
 │ Input:
 │   description: List repository contents
 │   command: ls -la
 └─
 
-┌─ TOOL RESULT (line 8)
-│ Tool ID: toolu_011FM74Ft8CR2ji5uPhY2k6d
+┌─ TOOL RESULT
 │ total 24
 │ drwxr-xr-x 3 user user 4096 Oct 21 12:00 .
 │ ...
