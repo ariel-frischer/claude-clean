@@ -33,7 +33,7 @@ Paste the actual output or error message here
 ## Environment
 - **OS**: [e.g., Ubuntu 22.04, macOS 14.0, Windows 11]
 - **Claude Clean Version**: [e.g., v0.1.0 or commit hash]
-- **Go Version** (if building from source): [e.g., 1.21]
+- **Go Version** (if building from source): [e.g., 1.24]
 - **Claude Code Version**: [e.g., 2.0.25]
 
 ## Additional Context

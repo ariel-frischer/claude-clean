@@ -1,6 +1,6 @@
 module github.com/ariel-frischer/claude-code-clean-output
 
-go 1.21
+go 1.24.0
 
 require (
 	github.com/fatih/color v1.18.0
