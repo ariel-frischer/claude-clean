@@ -1,0 +1,15 @@
+#!/bin/bash
+# Restore .dev/ directory after rebase on dev branch
+
+COMMAND="$1"  # 'rebase' or 'amend'
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$COMMAND" = "rebase" ] && [ "$BRANCH" = "dev" ]; then
+    if [ -d ".git/.dev-backup" ]; then
+        rm -rf .dev
+        cp -r .git/.dev-backup .dev
+        rm -rf .git/.dev-backup
+        git add .dev/
+        echo "🔧 Restored .dev/ directory on dev branch"
+    fi
+fi

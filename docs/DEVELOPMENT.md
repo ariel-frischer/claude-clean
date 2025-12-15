@@ -61,6 +61,44 @@ claude-clean/
         └── release.yml  # Release pipeline
 ```
 
+## Git Hooks
+
+Install git hooks after cloning:
+
+```bash
+make dev-setup
+```
+
+### Available Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `pre-rebase` | Backs up `.dev/` to `.git/.dev-backup/` before rebase |
+| `post-rewrite` | Restores `.dev/` from backup after rebase on `dev` branch |
+| `post-merge` | Auto-cleans `.dev/` when merging to `main` |
+| `pre-merge-commit` | Prevents merging `main` into `dev` (use rebase instead) |
+
+### Branch Workflow
+
+This project uses two main branches:
+
+- **`main`** - Stable release branch (public, no `.dev/` files)
+- **`dev`** - Development branch (has `.dev/` files with internal docs/scripts)
+
+| Action | Allowed |
+|--------|---------|
+| Merge `dev` → `main` | ✅ Yes |
+| Rebase `dev` onto `main` | ✅ Yes (preferred) |
+| Merge `main` → `dev` | ❌ No (use rebase) |
+
+#### Syncing dev with main
+
+```bash
+git checkout dev
+git rebase main              # pre-rebase backs up .dev/, post-rewrite restores it
+git push origin dev --force-with-lease
+```
+
 ## Development Workflow
 
 ### 1. Make Changes

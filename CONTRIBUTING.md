@@ -131,6 +131,14 @@ make dev-setup
 
 Prevents accidentally merging `main` into `dev` branches. Suggests using `git rebase main` instead.
 
+### pre-rebase
+
+Backs up `.dev/` directory to `.git/.dev-backup/` before rebase starts on `dev` branch.
+
+### post-rewrite
+
+Restores `.dev/` directory from `.git/.dev-backup/` after rebase completes on `dev` branch. This ensures `.dev/` files are preserved when rebasing onto `main`.
+
 ### post-merge
 
 Auto-cleans `.dev/` directory when merging to `main`. Runs automatically after `git merge dev` on main.
