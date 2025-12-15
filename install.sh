@@ -100,14 +100,20 @@ main() {
 
     info "Detected: ${OS}/${ARCH}"
 
-    # Build download URL
-    if [ "$OS" = "windows" ]; then
-        BINARY_FILE="${BINARY_NAME}-${OS}-${ARCH}.exe"
-    else
-        BINARY_FILE="${BINARY_NAME}-${OS}-${ARCH}"
+    # Get latest version tag
+    VERSION=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+    if [ -z "$VERSION" ]; then
+        error "Failed to get latest version"
     fi
 
-    DOWNLOAD_URL="${GITHUB_URL}/releases/latest/download/${BINARY_FILE}"
+    # Build download URL for archive
+    if [ "$OS" = "windows" ]; then
+        ARCHIVE_FILE="${BINARY_NAME}_${VERSION}_${OS}_${ARCH}.zip"
+    else
+        ARCHIVE_FILE="${BINARY_NAME}_${VERSION}_${OS}_${ARCH}.tar.gz"
+    fi
+
+    DOWNLOAD_URL="${GITHUB_URL}/releases/latest/download/${ARCHIVE_FILE}"
 
     # Determine install location
     INSTALL_DIR=$(get_install_dir)
@@ -117,24 +123,38 @@ main() {
     info "Install path: ${INSTALL_PATH}"
     echo
 
-    # Create temp file
-    TMP_FILE=$(mktemp)
-    trap 'rm -f "$TMP_FILE"' EXIT
+    # Create temp directory
+    TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"' EXIT
 
-    # Download binary
-    info "Downloading ${BINARY_NAME}..."
-    if ! download "$DOWNLOAD_URL" "$TMP_FILE"; then
+    # Download archive
+    info "Downloading ${BINARY_NAME} v${VERSION}..."
+    ARCHIVE_PATH="${TMP_DIR}/${ARCHIVE_FILE}"
+    if ! download "$DOWNLOAD_URL" "$ARCHIVE_PATH"; then
         error "Failed to download ${BINARY_NAME}. Check if the release exists at ${GITHUB_URL}/releases"
     fi
 
-    # Make executable and move to install location
-    chmod +x "$TMP_FILE"
+    # Extract archive
+    info "Extracting..."
+    if [ "$OS" = "windows" ]; then
+        unzip -q "$ARCHIVE_PATH" -d "$TMP_DIR"
+    else
+        tar -xzf "$ARCHIVE_PATH" -C "$TMP_DIR"
+    fi
+
+    # Find and install binary
+    EXTRACTED_BINARY="${TMP_DIR}/${BINARY_NAME}"
+    if [ ! -f "$EXTRACTED_BINARY" ]; then
+        error "Binary not found in archive"
+    fi
+
+    chmod +x "$EXTRACTED_BINARY"
 
     if [ "$INSTALL_DIR" = "/usr/local/bin" ] && [ ! -w /usr/local/bin ]; then
         info "Installing to ${INSTALL_DIR} (requires sudo)..."
-        sudo mv "$TMP_FILE" "$INSTALL_PATH"
+        sudo mv "$EXTRACTED_BINARY" "$INSTALL_PATH"
     else
-        mv "$TMP_FILE" "$INSTALL_PATH"
+        mv "$EXTRACTED_BINARY" "$INSTALL_PATH"
     fi
 
     # Verify installation
