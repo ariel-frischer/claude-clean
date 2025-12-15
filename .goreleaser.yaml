@@ -25,14 +25,12 @@ builds:
     binary: cclean
 
 archives:
-  - formats:
-      - tar.gz
+  - format: tar.gz
     name_template: >-
       {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
-    overrides:
+    format_overrides:
       - goos: windows
-        formats:
-          - zip
+        format: zip
 
 checksum:
   name_template: 'checksums.txt'
