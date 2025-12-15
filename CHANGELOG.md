@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- Removed automatic `claude` process spawning when no arguments provided; cclean now reads from stdin by default
+
 ## [1.0.0] - 2025-12-12
 
 ### Added

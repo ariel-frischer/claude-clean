@@ -31,7 +31,7 @@ The codebase follows standard Go project layout:
 ```
 claude-clean/
 ├── cmd/cclean/           # Application entry point
-│   └── main.go           # CLI parsing, input routing, Claude execution
+│   └── main.go           # CLI parsing, input routing
 ├── internal/             # Private application packages
 │   ├── parser/           # JSONL parsing and types
 │   │   ├── parser.go     # StripSystemReminders, constants
@@ -50,7 +50,7 @@ claude-clean/
 
 **cmd/cclean/main.go** - Application entry point:
 1. **CLI parsing**: Flag handling for style, verbose, line numbers
-2. **Input routing**: File, stdin, or live Claude execution via `runClaude()`
+2. **Input routing**: File or stdin (defaults to stdin when no args)
 3. **JSONL parsing**: Line-by-line JSON deserialization into `StreamMessage` structs
 4. **Duplicate detection**: Buffers assistant messages to skip duplicates in result messages
 
