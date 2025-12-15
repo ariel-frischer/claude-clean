@@ -1,6 +1,6 @@
-package main
+package parser
 
-// Message types from Claude stream
+// StreamMessage represents the top-level JSON message from Claude stream
 type StreamMessage struct {
 	Type              string          `json:"type"`
 	Subtype           string          `json:"subtype,omitempty"`
@@ -23,6 +23,7 @@ type StreamMessage struct {
 	PermissionDenials []interface{}          `json:"permission_denials,omitempty"`
 }
 
+// MessageContent contains the message content container
 type MessageContent struct {
 	ID           string         `json:"id"`
 	Type         string         `json:"type"`
@@ -34,6 +35,7 @@ type MessageContent struct {
 	Usage        *Usage         `json:"usage"`
 }
 
+// ContentBlock represents individual content pieces (text, tool_use, tool_result)
 type ContentBlock struct {
 	Type      string                 `json:"type"`
 	Text      string                 `json:"text,omitempty"`
@@ -45,6 +47,7 @@ type ContentBlock struct {
 	IsError   bool                   `json:"is_error,omitempty"`
 }
 
+// Usage represents token usage statistics
 type Usage struct {
 	InputTokens              int                  `json:"input_tokens"`
 	OutputTokens             int                  `json:"output_tokens"`
@@ -54,6 +57,7 @@ type Usage struct {
 	ServiceTier              string               `json:"service_tier,omitempty"`
 }
 
+// CacheCreationDetail contains detailed cache creation statistics
 type CacheCreationDetail struct {
 	Ephemeral5mInputTokens int `json:"ephemeral_5m_input_tokens"`
 	Ephemeral1hInputTokens int `json:"ephemeral_1h_input_tokens"`

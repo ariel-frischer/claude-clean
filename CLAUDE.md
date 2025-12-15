@@ -26,36 +26,56 @@ go test -v -run TestFunctionName ./...
 
 ## Architecture
 
-The codebase is organized into a pipeline architecture in a single-package structure:
+The codebase follows standard Go project layout:
 
-**main.go** (~1500 lines) - Core processing pipeline:
-1. **Input routing**: File, stdin, or live Claude execution via `runClaude()`
-2. **JSONL parsing**: Line-by-line JSON deserialization into `StreamMessage` structs
-3. **Duplicate detection**: Buffers assistant messages to skip duplicates in result messages
-4. **Display routing**: `displayMessage()` routes to style-specific formatters
+```
+claude-clean/
+├── cmd/cclean/           # Application entry point
+│   └── main.go           # CLI parsing, input routing, Claude execution
+├── internal/             # Private application packages
+│   ├── parser/           # JSONL parsing and types
+│   │   ├── parser.go     # StripSystemReminders, constants
+│   │   ├── types.go      # StreamMessage, ContentBlock, Usage
+│   │   └── parser_test.go
+│   └── display/          # Output formatting
+│       ├── display.go    # Common utilities, color definitions, Config
+│       ├── default.go    # Default style (box-drawing)
+│       ├── compact.go    # Single-line summaries
+│       ├── minimal.go    # No box-drawing
+│       ├── plain.go      # No colors
+│       └── display_test.go
+├── mocks/                # Test data
+└── bin/                  # Build output
+```
 
-**types.go** - JSON schema definitions matching Claude Code's stream-json format:
-- `StreamMessage` - Top-level wrapper (type: system/assistant/user/result)
-- `MessageContent` - Content container with `[]ContentBlock`
-- `ContentBlock` - Individual content pieces (text/tool_use/tool_result)
+**cmd/cclean/main.go** - Application entry point:
+1. **CLI parsing**: Flag handling for style, verbose, line numbers
+2. **Input routing**: File, stdin, or live Claude execution via `runClaude()`
+3. **JSONL parsing**: Line-by-line JSON deserialization into `StreamMessage` structs
+4. **Duplicate detection**: Buffers assistant messages to skip duplicates in result messages
 
-**Display functions** (48 total, in main.go) - Each message type has 4 style variants:
-- `displaySystemMessage()`, `displaySystemMessageCompact()`, `displaySystemMessageMinimal()`, `displaySystemMessagePlain()`
-- Same pattern for Assistant, User/ToolResult, and Result messages
+**internal/parser/** - Data types and parsing utilities:
+- `types.go`: JSON schema definitions matching Claude Code's stream-json format
+  - `StreamMessage` - Top-level wrapper (type: system/assistant/user/result)
+  - `MessageContent` - Content container with `[]ContentBlock`
+  - `ContentBlock` - Individual content pieces (text/tool_use/tool_result)
+- `parser.go`: Utility functions like `StripSystemReminders`
+
+**internal/display/** - Output formatting:
+- `display.go`: Common utilities, color definitions, `Config` struct, `DisplayMessage()` router
+- Style-specific files: Each message type has 4 style variants across files
 
 ## Key Implementation Details
 
-- **10MB max buffer** for handling large outputs (line ~168)
+- **10MB max buffer** for handling large outputs (`parser.MaxBufferCapacity`)
 - **System reminder stripping**: Regex removes `<system-reminder>` tags in non-verbose mode
 - **Large output truncation**: Shows first 20 + last 20 lines with middle summary
 - **Todo formatting**: Special visual indicators for TodoWrite tool (✓/→/○)
 
 ## Testing
 
-Test files are organized by output style:
-- `main_test.go` - Core function tests (stripSystemReminders, etc.)
-- `display_test.go` - Default style tests
-- `display_minimal_test.go` - Minimal style tests
-- `display_plain_test.go` - Plain style tests
+Tests are organized by package:
+- `internal/parser/parser_test.go` - Parser tests (stripSystemReminders, etc.)
+- `internal/display/display_test.go` - Display function tests
 
 Sample test data: `mocks/claude-stream-json-simple.jsonl`

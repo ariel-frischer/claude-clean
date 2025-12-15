@@ -1,0 +1,354 @@
+tasks:
+    branch: "001-go-project-restructure"
+    created: "2025-12-14"
+    spec_path: "specs/001-go-project-restructure/spec.yaml"
+    plan_path: "specs/001-go-project-restructure/plan.yaml"
+summary:
+    total_tasks: 21
+    total_phases: 6
+    parallel_opportunities: 8
+    estimated_complexity: "medium"
+phases:
+    - number: 1
+      title: "Setup"
+      purpose: "Create package directory structure"
+      tasks:
+        - id: "T001"
+          title: "Create cmd/cclean/ directory"
+          status: "Completed"
+          type: "setup"
+          parallel: true
+          story_id: null
+          file_path: "cmd/cclean/"
+          dependencies: []
+          acceptance_criteria:
+            - "cmd/cclean/ directory exists"
+        - id: "T002"
+          title: "Create internal/parser/ directory"
+          status: "Completed"
+          type: "setup"
+          parallel: true
+          story_id: null
+          file_path: "internal/parser/"
+          dependencies: []
+          acceptance_criteria:
+            - "internal/parser/ directory exists"
+        - id: "T003"
+          title: "Create internal/display/ directory"
+          status: "Completed"
+          type: "setup"
+          parallel: true
+          story_id: null
+          file_path: "internal/display/"
+          dependencies: []
+          acceptance_criteria:
+            - "internal/display/ directory exists"
+    - number: 2
+      title: "Foundational"
+      purpose: "Move type definitions that other packages depend on"
+      tasks:
+        - id: "T004"
+          title: "Move types.go to internal/parser/types.go"
+          status: "Completed"
+          type: "implementation"
+          parallel: false
+          story_id: null
+          file_path: "internal/parser/types.go"
+          dependencies: ["T002"]
+          acceptance_criteria:
+            - "internal/parser/types.go exists with package parser declaration"
+            - "StreamMessage, MessageContent, ContentBlock, Usage structs are defined"
+            - "Types are exported (capitalized) for use by other packages"
+    - number: 3
+      title: "User Story 1 - Developer navigates organized codebase"
+      purpose: "Organize codebase following standard Go project layout conventions"
+      story_reference: "US-001"
+      independent_test: "New developer can identify where to add a new display formatter without guidance"
+      tasks:
+        - id: "T005"
+          title: "Create internal/parser/parser.go with parsing functions"
+          status: "Completed"
+          type: "implementation"
+          parallel: false
+          story_id: "US-001"
+          file_path: "internal/parser/parser.go"
+          dependencies: ["T004"]
+          acceptance_criteria:
+            - "internal/parser/parser.go exists with package parser declaration"
+            - "Contains JSONL parsing logic extracted from main.go"
+            - "Contains stripSystemReminders function"
+            - "Contains buffer constants (10MB max buffer)"
+            - "Functions are exported for use by cmd/cclean/main.go"
+        - id: "T006"
+          title: "Create internal/display/display.go with common utilities"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-001"
+          file_path: "internal/display/display.go"
+          dependencies: ["T004"]
+          acceptance_criteria:
+            - "internal/display/display.go exists with package display declaration"
+            - "Contains style routing logic (displayMessage function)"
+            - "Contains formatLineNum, formatLineNumCompact helpers"
+            - "Contains large output truncation logic"
+            - "Imports internal/parser for type definitions"
+        - id: "T007"
+          title: "Create internal/display/default.go with default style functions"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-001"
+          file_path: "internal/display/default.go"
+          dependencies: ["T006"]
+          acceptance_criteria:
+            - "internal/display/default.go exists"
+            - "Contains displaySystemMessage, displayAssistantMessage, displayUserMessage, displayResultMessage"
+            - "Contains associated helper functions for default style"
+        - id: "T008"
+          title: "Create internal/display/compact.go with compact style functions"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-001"
+          file_path: "internal/display/compact.go"
+          dependencies: ["T006"]
+          acceptance_criteria:
+            - "internal/display/compact.go exists"
+            - "Contains displaySystemMessageCompact and other compact style functions"
+        - id: "T009"
+          title: "Create internal/display/minimal.go with minimal style functions"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-001"
+          file_path: "internal/display/minimal.go"
+          dependencies: ["T006"]
+          acceptance_criteria:
+            - "internal/display/minimal.go exists"
+            - "Contains displaySystemMessageMinimal and other minimal style functions"
+        - id: "T010"
+          title: "Create internal/display/plain.go with plain style functions"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-001"
+          file_path: "internal/display/plain.go"
+          dependencies: ["T006"]
+          acceptance_criteria:
+            - "internal/display/plain.go exists"
+            - "Contains displaySystemMessagePlain and other plain style functions"
+    - number: 4
+      title: "User Story 2 - Maintain existing functionality after restructure"
+      purpose: "Ensure tool works exactly as before after the restructure"
+      story_reference: "US-002"
+      independent_test: "Run existing test suite and all tests pass"
+      tasks:
+        - id: "T011"
+          title: "Move parser tests to internal/parser/parser_test.go"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-002"
+          file_path: "internal/parser/parser_test.go"
+          dependencies: ["T005"]
+          acceptance_criteria:
+            - "internal/parser/parser_test.go exists"
+            - "Contains tests for stripSystemReminders and parsing functions"
+            - "Tests pass: go test ./internal/parser/..."
+        - id: "T012"
+          title: "Move display tests to internal/display/*_test.go"
+          status: "Completed"
+          type: "implementation"
+          parallel: true
+          story_id: "US-002"
+          file_path: "internal/display/"
+          dependencies: ["T007", "T008", "T009", "T010"]
+          acceptance_criteria:
+            - "Display tests are co-located with their implementations"
+            - "Tests pass: go test ./internal/display/..."
+        - id: "T013"
+          title: "Verify all existing tests pass with new structure"
+          status: "Completed"
+          type: "test"
+          parallel: false
+          story_id: "US-002"
+          file_path: ""
+          dependencies: ["T011", "T012"]
+          acceptance_criteria:
+            - "make test passes with 100% of original tests"
+            - "No test logic was modified, only file locations"
+    - number: 5
+      title: "User Story 3 - Entry point contains minimal code"
+      purpose: "Create clean entry point with only flag parsing and orchestration"
+      story_reference: "US-003"
+      independent_test: "cmd/cclean/main.go is under 100 lines and only calls internal packages"
+      tasks:
+        - id: "T014"
+          title: "Create cmd/cclean/main.go entry point"
+          status: "Completed"
+          type: "implementation"
+          parallel: false
+          story_id: "US-003"
+          file_path: "cmd/cclean/main.go"
+          dependencies: ["T005", "T006"]
+          acceptance_criteria:
+            - "cmd/cclean/main.go exists with package main declaration"
+            - "Contains flag parsing for -style, -verbose, -file, etc."
+            - "Contains input routing (file, stdin, live Claude execution)"
+            - "Calls internal/parser for JSONL parsing"
+            - "Calls internal/display for output formatting"
+            - "Under 100 lines of code"
+        - id: "T015"
+          title: "Update Makefile build target for new entry point"
+          status: "Completed"
+          type: "implementation"
+          parallel: false
+          story_id: "US-003"
+          file_path: "Makefile"
+          dependencies: ["T014"]
+          acceptance_criteria:
+            - "make build compiles cmd/cclean/main.go"
+            - "Binary output is bin/cclean"
+            - "make all pipeline works (fmt + vet + build)"
+        - id: "T016"
+          title: "Verify binary runs correctly"
+          status: "Completed"
+          type: "test"
+          parallel: false
+          story_id: "US-003"
+          file_path: ""
+          dependencies: ["T015"]
+          acceptance_criteria:
+            - "bin/cclean runs without errors"
+            - "All CLI flags work: -style, -verbose, -file"
+            - "Output matches original behavior for mocks/claude-stream-json-simple.jsonl"
+    - number: 6
+      title: "Polish & Cross-Cutting Concerns"
+      purpose: "Cleanup and final verification"
+      tasks:
+        - id: "T017"
+          title: "Remove old root-level main.go"
+          status: "Completed"
+          type: "refactor"
+          parallel: true
+          story_id: null
+          file_path: "main.go"
+          dependencies: ["T016"]
+          acceptance_criteria:
+            - "Root main.go is deleted"
+            - "No duplicate main package exists"
+        - id: "T018"
+          title: "Remove old root-level types.go"
+          status: "Completed"
+          type: "refactor"
+          parallel: true
+          story_id: null
+          file_path: "types.go"
+          dependencies: ["T016"]
+          acceptance_criteria:
+            - "Root types.go is deleted"
+            - "Types only exist in internal/parser/types.go"
+        - id: "T019"
+          title: "Remove old root-level test files"
+          status: "Completed"
+          type: "refactor"
+          parallel: true
+          story_id: null
+          file_path: ""
+          dependencies: ["T016"]
+          acceptance_criteria:
+            - "Root *_test.go files are deleted"
+            - "Tests only exist in internal/ packages"
+        - id: "T020"
+          title: "Update CLAUDE.md architecture section"
+          status: "Completed"
+          type: "documentation"
+          parallel: false
+          story_id: null
+          file_path: "CLAUDE.md"
+          dependencies: ["T017", "T018", "T019"]
+          acceptance_criteria:
+            - "CLAUDE.md reflects new package structure"
+            - "Architecture section describes cmd/, internal/parser/, internal/display/"
+        - id: "T021"
+          title: "Final verification - make all and manual test"
+          status: "Completed"
+          type: "test"
+          parallel: false
+          story_id: null
+          file_path: ""
+          dependencies: ["T020"]
+          acceptance_criteria:
+            - "make all passes (fmt + vet + build)"
+            - "make test passes all tests"
+            - "Manual test with sample JSONL produces expected output"
+            - "All output styles work (default, compact, minimal, plain)"
+dependencies:
+    user_story_order:
+        - story_id: "US-001"
+          depends_on: []
+          blocks: ["US-002", "US-003"]
+        - story_id: "US-002"
+          depends_on: ["US-001"]
+          blocks: []
+        - story_id: "US-003"
+          depends_on: ["US-001"]
+          blocks: []
+    phase_order:
+        - phase: 1
+          blocks: [2]
+        - phase: 2
+          blocks: [3]
+        - phase: 3
+          blocks: [4, 5]
+        - phase: 4
+          blocks: [6]
+        - phase: 5
+          blocks: [6]
+parallel_execution:
+    - phase: 1
+      parallel_groups:
+        - tasks: ["T001", "T002", "T003"]
+          rationale: "Independent directory creation"
+    - phase: 3
+      parallel_groups:
+        - tasks: ["T005", "T006"]
+          rationale: "Parser and display common utilities can be created simultaneously"
+        - tasks: ["T007", "T008", "T009", "T010"]
+          rationale: "Style-specific display files are independent of each other"
+    - phase: 4
+      parallel_groups:
+        - tasks: ["T011", "T012"]
+          rationale: "Parser tests and display tests are independent"
+    - phase: 6
+      parallel_groups:
+        - tasks: ["T017", "T018", "T019"]
+          rationale: "Old file deletion is independent"
+implementation_strategy:
+    mvp_scope:
+        phases: [1, 2, 3]
+        description: "Setup + Foundational + Directory organization (US-001)"
+        validation: "Code compiles, directory structure matches Go conventions"
+    incremental_delivery:
+        - milestone: "Structure Ready"
+          phases: [1, 2]
+          deliverable: "Directory structure and type definitions in place"
+        - milestone: "Code Migrated"
+          phases: [1, 2, 3]
+          deliverable: "All code moved to new locations, project compiles"
+        - milestone: "Tests Passing"
+          phases: [1, 2, 3, 4]
+          deliverable: "All tests pass in new structure"
+        - milestone: "Entry Point Complete"
+          phases: [1, 2, 3, 4, 5]
+          deliverable: "Minimal main.go, make build works"
+        - milestone: "Fully Complete"
+          phases: [1, 2, 3, 4, 5, 6]
+          deliverable: "Old files removed, documentation updated, final verification"
+_meta:
+    version: "1.0.0"
+    generator: "autospec"
+    generator_version: "dev (commit 148e640)"
+    created: "2025-12-14T00:00:00Z"
+    artifact_type: "tasks"
