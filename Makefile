@@ -41,9 +41,12 @@ build:
 	@mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/cclean
 
-# Install to ~/.local/bin with optional alias setup
-install:
-	@./scripts/install.sh
+# Install to ~/.local/bin (build from source)
+install: build
+	@mkdir -p $(HOME)/.local/bin
+	@cp $(BUILD_DIR)/$(BINARY_NAME) $(HOME)/.local/bin/$(BINARY_NAME)
+	@chmod +x $(HOME)/.local/bin/$(BINARY_NAME)
+	@echo "Installed $(BINARY_NAME) to ~/.local/bin/"
 
 # Run with sample data
 run: build
