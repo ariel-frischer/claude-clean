@@ -1,5 +1,5 @@
-.PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release patch minor major dev-setup
-.PHONY: b i r rv t c f v d a s p
+.PHONY: help build install uninstall run run-verbose test clean fmt vet deps all snapshot release patch minor major dev-setup
+.PHONY: b i u r rv t c f v d a s p
 
 # Binary name and output directory
 BINARY_NAME=cclean
@@ -14,6 +14,7 @@ help:
 	@echo "Available targets:"
 	@echo "  build   (b)   - Build the binary"
 	@echo "  install (i)   - Install cclean to ~/.local/bin"
+	@echo "  uninstall (u) - Uninstall cclean from the system"
 	@echo "  run     (r)   - Run with sample mock data"
 	@echo "  run-verbose (rv) - Run with verbose output on sample data"
 	@echo "  test    (t)   - Run tests"
@@ -47,6 +48,21 @@ install: build
 	@cp $(BUILD_DIR)/$(BINARY_NAME) $(HOME)/.local/bin/$(BINARY_NAME)
 	@chmod +x $(HOME)/.local/bin/$(BINARY_NAME)
 	@echo "Installed $(BINARY_NAME) to ~/.local/bin/"
+
+# Uninstall cclean from the system
+uninstall:
+	@if [ -f $(BUILD_DIR)/$(BINARY_NAME) ]; then \
+		./$(BUILD_DIR)/$(BINARY_NAME) --uninstall; \
+	elif command -v $(BINARY_NAME) > /dev/null 2>&1; then \
+		$(BINARY_NAME) --uninstall; \
+	else \
+		echo "Removing cclean from known locations..."; \
+		rm -f $(HOME)/.local/bin/$(BINARY_NAME); \
+		if [ -f /usr/local/bin/$(BINARY_NAME) ]; then \
+			sudo rm -f /usr/local/bin/$(BINARY_NAME); \
+		fi; \
+		echo "Done."; \
+	fi
 
 # Run with sample data
 run: build
@@ -148,6 +164,7 @@ major:
 # Abbreviations
 b: build
 i: install
+u: uninstall
 r: run
 rv: run-verbose
 t: test
