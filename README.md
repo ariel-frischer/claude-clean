@@ -52,15 +52,10 @@ curl -fsSL https://raw.githubusercontent.com/ariel-frischer/claude-clean/main/in
 
 ### 📥 Manual Download
 
-| Platform | Download |
-|----------|----------|
-| 🐧 Linux x64 | [cclean-linux-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-linux-amd64) |
-| 🐧 Linux ARM | [cclean-linux-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-linux-arm64) |
-| 🍎 macOS Intel | [cclean-darwin-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-darwin-amd64) |
-| 🍎 macOS Apple Silicon | [cclean-darwin-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-darwin-arm64) |
-| 🪟 Windows | [cclean-windows-amd64.exe](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-windows-amd64.exe) |
+Download the appropriate binary for your platform from the [latest release](https://github.com/ariel-frischer/claude-clean/releases/latest/).
 
 ```bash
+# After downloading, make it executable and move to PATH
 chmod +x cclean-* && sudo mv cclean-* /usr/local/bin/cclean
 ```
 
