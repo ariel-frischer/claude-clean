@@ -7,12 +7,6 @@
 
 **Transform messy Claude Code JSON logs into beautiful terminal output.** ✨
 
-<p align="center">
-  <img src="https://img.shields.io/badge/colors-yes-brightgreen" alt="Colors">
-  <img src="https://img.shields.io/badge/box%20drawing-yes-blue" alt="Box Drawing">
-  <img src="https://img.shields.io/badge/real--time-streaming-orange" alt="Streaming">
-</p>
-
 ---
 
 ## ⚡ Quick Start
