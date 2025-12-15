@@ -1,8 +1,9 @@
 .PHONY: help build install run run-verbose test clean fmt vet deps all snapshot release patch minor major dev-setup
 .PHONY: b i r rv t c f v d a s p
 
-# Binary name
+# Binary name and output directory
 BINARY_NAME=cclean
+BUILD_DIR=bin
 
 # Default target
 help:
@@ -37,7 +38,8 @@ help:
 # Build the binary
 build:
 	@echo "Building $(BINARY_NAME)..."
-	go build -o $(BINARY_NAME) .
+	@mkdir -p $(BUILD_DIR)
+	go build -o $(BUILD_DIR)/$(BINARY_NAME) .
 
 # Install to ~/.local/bin with optional alias setup
 install:
@@ -47,18 +49,18 @@ install:
 run: build
 	@echo "Running $(BINARY_NAME) with sample data..."
 	@if [ -f mocks/claude-stream-json-simple.jsonl ]; then \
-		./$(BINARY_NAME) mocks/claude-stream-json-simple.jsonl; \
+		./$(BUILD_DIR)/$(BINARY_NAME) mocks/claude-stream-json-simple.jsonl; \
 	else \
-		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BINARY_NAME)"; \
+		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BUILD_DIR)/$(BINARY_NAME)"; \
 	fi
 
 # Run with verbose output
 run-verbose: build
 	@echo "Running $(BINARY_NAME) with verbose output..."
 	@if [ -f mocks/claude-stream-json-simple.jsonl ]; then \
-		./$(BINARY_NAME) -V mocks/claude-stream-json-simple.jsonl; \
+		./$(BUILD_DIR)/$(BINARY_NAME) -V mocks/claude-stream-json-simple.jsonl; \
 	else \
-		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BINARY_NAME)"; \
+		echo "No sample data found. Create mocks/claude-stream-json-simple.jsonl or pipe data to ./$(BUILD_DIR)/$(BINARY_NAME)"; \
 	fi
 
 # Run tests
@@ -69,7 +71,7 @@ test:
 # Clean built binaries
 clean:
 	@echo "Cleaning..."
-	rm -f $(BINARY_NAME)
+	rm -rf $(BUILD_DIR)
 	go clean
 
 # Format code
