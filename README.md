@@ -70,11 +70,6 @@ git clone https://github.com/ariel-frischer/claude-clean && cd claude-clean
 make install
 ```
 
-### 🗑️ Uninstall
-```bash
-cclean --uninstall
-```
-
 ---
 
 ## 🎯 Usage
@@ -135,6 +130,14 @@ cclean -s compact logs.jsonl  # Try different styles!
 - [Contributing](docs/CONTRIBUTING.md) - How to contribute
 - [Releases](docs/RELEASES.md) - Release process and versioning
 - [Auto-bump](docs/AUTOBUMP.md) - Automatic version bumping
+
+---
+
+## 🗑️ Uninstall
+
+```bash
+cclean --uninstall
+```
 
 ---
 
