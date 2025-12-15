@@ -1,7 +1,7 @@
 # Claude Clean
 
-[![Pipeline](https://gitlab.com/ariel-frischer/claude-clean/badges/main/pipeline.svg)](https://gitlab.com/ariel-frischer/claude-clean/-/pipelines)
-[![Release](https://img.shields.io/gitlab/v/release/ariel-frischer/claude-clean)](https://gitlab.com/ariel-frischer/claude-clean/-/releases)
+[![CI](https://github.com/ariel-frischer/claude-clean/actions/workflows/release.yml/badge.svg)](https://github.com/ariel-frischer/claude-clean/actions)
+[![Release](https://img.shields.io/github/v/release/ariel-frischer/claude-clean)](https://github.com/ariel-frischer/claude-clean/releases)
 [![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?logo=go)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
