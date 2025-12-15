@@ -173,3 +173,19 @@ cclean logfile.jsonl
 **"Cannot find writable install directory"**
 - Create `~/.local/bin`: `mkdir -p ~/.local/bin`
 - Or run with sudo for `/usr/local/bin`
+
+## Uninstall
+
+```bash
+cclean --uninstall
+```
+
+Or via Makefile (if built from source):
+```bash
+make uninstall
+```
+
+The uninstall command will:
+- Detect all installed locations (`~/.local/bin`, `/usr/local/bin`)
+- Prompt for confirmation before removing
+- Use sudo automatically when needed for system paths

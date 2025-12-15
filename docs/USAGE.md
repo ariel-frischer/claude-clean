@@ -64,6 +64,7 @@ cc "help me debug this error"
 | `-V` | Very verbose (includes token stats) |
 | `-l` | Show line numbers |
 | `--version` | Show version info |
+| `--uninstall` | Uninstall cclean from the system |
 | `-h`, `--help` | Show help |
 
 ## Output Styles

@@ -76,6 +76,11 @@ git clone https://github.com/ariel-frischer/claude-clean && cd claude-clean
 make install
 ```
 
+### 🗑️ Uninstall
+```bash
+cclean --uninstall
+```
+
 ---
 
 ## 🎯 Usage
