@@ -57,13 +57,13 @@ var (
 
 // Command-line flags
 var (
-	showVersion = flag.Bool("version", false, "Show version information")
+	showVersion      = flag.Bool("version", false, "Show version information")
 	showVersionShort = flag.Bool("v", false, "Show version information (short)")
-	verbose     = flag.Bool("V", false, "Show verbose output (tool IDs, token usage)")
-	help        = flag.Bool("h", false, "Show help message")
-	style       = flag.String("s", "default", "Output style: default, compact, minimal, plain")
-	useOAuth    = flag.Bool("oauth", false, "Use OAuth (Claude Pro/Team plan) instead of API key")
-	showLineNum = flag.Bool("l", false, "Show line numbers in output")
+	verbose          = flag.Bool("V", false, "Show verbose output (tool IDs, token usage)")
+	help             = flag.Bool("h", false, "Show help message")
+	style            = flag.String("s", "default", "Output style: default, compact, minimal, plain")
+	useOAuth         = flag.Bool("oauth", false, "Use OAuth (Claude Pro/Team plan) instead of API key")
+	showLineNum      = flag.Bool("l", false, "Show line numbers in output")
 )
 
 // Global style setting
