@@ -128,15 +128,14 @@ cclean -s compact logs.jsonl  # Try different styles!
 
 ---
 
-## 💡 Pro Tips
+## 📚 Documentation
 
-```bash
-# Use OAuth (FREE with Claude Pro/Team subscription!)
-ANTHROPIC_API_KEY="" claude -p "prompt" --verbose --output-format stream-json | cclean
-
-# Alias for convenience
-alias cc='claude -p --verbose --output-format stream-json | cclean'
-```
+- [Usage Guide](docs/USAGE.md) - Shell aliases, advanced examples, output styles
+- [Installation](docs/INSTALL.md) - Detailed installation options
+- [Development](docs/DEVELOPMENT.md) - Building from source, architecture
+- [Contributing](docs/CONTRIBUTING.md) - How to contribute
+- [Releases](docs/RELEASES.md) - Release process and versioning
+- [Auto-bump](docs/AUTOBUMP.md) - Automatic version bumping
 
 ---
 
