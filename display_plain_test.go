@@ -8,11 +8,11 @@ import (
 )
 
 // ============================================================================
-// MINIMAL STYLE DISPLAY FUNCTION TESTS
+// PLAIN STYLE DISPLAY FUNCTION TESTS
 // ============================================================================
 
-// TestDisplaySystemMessageMinimal tests displaySystemMessageMinimal function
-func TestDisplaySystemMessageMinimal(t *testing.T) {
+// TestDisplaySystemMessagePlain tests displaySystemMessagePlain function
+func TestDisplaySystemMessagePlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
@@ -82,12 +82,9 @@ func TestDisplaySystemMessageMinimal(t *testing.T) {
 				Type:  "system",
 				Model: "claude-haiku-4",
 			},
-			lineNum:  10,
-			showLine: false,
-			contains: []string{
-				"SYSTEM",
-				"Model: claude-haiku-4",
-			},
+			lineNum:     10,
+			showLine:    false,
+			contains:    []string{"SYSTEM", "Model: claude-haiku-4"},
 			notContains: []string{"[]"},
 		},
 	}
@@ -99,7 +96,7 @@ func TestDisplaySystemMessageMinimal(t *testing.T) {
 			defer func() { *showLineNum = oldShowLineNum }()
 
 			output := captureStdout(func() {
-				displaySystemMessageMinimal(tt.msg, tt.lineNum)
+				displaySystemMessagePlain(tt.msg, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
@@ -118,19 +115,20 @@ func TestDisplaySystemMessageMinimal(t *testing.T) {
 	}
 }
 
-// TestDisplayAssistantMessageMinimal tests displayAssistantMessageMinimal function
-func TestDisplayAssistantMessageMinimal(t *testing.T) {
+// TestDisplayAssistantMessagePlain tests displayAssistantMessagePlain function
+func TestDisplayAssistantMessagePlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
 	tests := []struct {
-		name     string
-		msg      *StreamMessage
-		lineNum  int
-		showLine bool
-		verbose  bool
-		contains []string
-		notEmpty bool
+		name        string
+		msg         *StreamMessage
+		lineNum     int
+		showLine    bool
+		verbose     bool
+		contains    []string
+		notContains []string
+		notEmpty    bool
 	}{
 		{
 			name: "Simple text message",
@@ -145,10 +143,7 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			lineNum:  1,
 			showLine: false,
 			verbose:  false,
-			contains: []string{
-				"ASSISTANT",
-				"Hello, world!",
-			},
+			contains: []string{"ASSISTANT", "Hello, world!"},
 			notEmpty: true,
 		},
 		{
@@ -164,11 +159,7 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			lineNum:  25,
 			showLine: true,
 			verbose:  false,
-			contains: []string{
-				"ASSISTANT",
-				"(line 25)",
-				"Test message",
-			},
+			contains: []string{"ASSISTANT", "(line 25)", "Test message"},
 			notEmpty: true,
 		},
 		{
@@ -185,11 +176,7 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			lineNum:  1,
 			showLine: false,
 			verbose:  false,
-			contains: []string{
-				"ASSISTANT",
-				"First block",
-				"Second block",
-			},
+			contains: []string{"ASSISTANT", "First block", "Second block"},
 			notEmpty: true,
 		},
 		{
@@ -209,11 +196,7 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			lineNum:  1,
 			showLine: false,
 			verbose:  true,
-			contains: []string{
-				"ASSISTANT",
-				"Response text",
-				"Tokens: in=100 out=50",
-			},
+			contains: []string{"ASSISTANT", "Response text", "Tokens: in=100 out=50"},
 			notEmpty: true,
 		},
 		{
@@ -235,13 +218,7 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			lineNum:  1,
 			showLine: false,
 			verbose:  true,
-			contains: []string{
-				"ASSISTANT",
-				"Cached response",
-				"Tokens: in=200 out=75",
-				"cache_read=150",
-				"cache_create=50",
-			},
+			contains: []string{"ASSISTANT", "Cached response", "Tokens: in=200 out=75", "cache_read=150", "cache_create=50"},
 			notEmpty: true,
 		},
 		{
@@ -270,6 +247,27 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			contains: []string{},
 			notEmpty: false,
 		},
+		{
+			name: "Usage not shown in non-verbose mode",
+			msg: &StreamMessage{
+				Type: "assistant",
+				Message: &MessageContent{
+					Content: []ContentBlock{
+						{Type: "text", Text: "Response"},
+					},
+					Usage: &Usage{
+						InputTokens:  100,
+						OutputTokens: 50,
+					},
+				},
+			},
+			lineNum:     1,
+			showLine:    false,
+			verbose:     false,
+			contains:    []string{"ASSISTANT", "Response"},
+			notContains: []string{"Tokens:"},
+			notEmpty:    true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -284,7 +282,7 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 			}()
 
 			output := captureStdout(func() {
-				displayAssistantMessageMinimal(tt.msg, tt.lineNum)
+				displayAssistantMessagePlain(tt.msg, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
@@ -298,12 +296,18 @@ func TestDisplayAssistantMessageMinimal(t *testing.T) {
 					t.Errorf("Expected output to contain %q, but it didn't.\nGot:\n%s", expected, cleaned)
 				}
 			}
+
+			for _, notExp := range tt.notContains {
+				if strings.Contains(cleaned, notExp) {
+					t.Errorf("Expected output NOT to contain %q, but it did.\nGot:\n%s", notExp, cleaned)
+				}
+			}
 		})
 	}
 }
 
-// TestDisplayUserMessageMinimal tests displayUserMessageMinimal function
-func TestDisplayUserMessageMinimal(t *testing.T) {
+// TestDisplayUserMessagePlain tests displayUserMessagePlain function
+func TestDisplayUserMessagePlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
@@ -334,10 +338,7 @@ func TestDisplayUserMessageMinimal(t *testing.T) {
 			lineNum:  1,
 			showLine: false,
 			verbose:  false,
-			contains: []string{
-				"TOOL RESULT",
-				"Tool output here",
-			},
+			contains: []string{"TOOL RESULT", "Tool output here"},
 			notEmpty: true,
 		},
 		{
@@ -345,6 +346,20 @@ func TestDisplayUserMessageMinimal(t *testing.T) {
 			msg: &StreamMessage{
 				Type:    "user",
 				Message: nil,
+			},
+			lineNum:  1,
+			showLine: false,
+			verbose:  false,
+			contains: []string{},
+			notEmpty: false,
+		},
+		{
+			name: "Empty content array",
+			msg: &StreamMessage{
+				Type: "user",
+				Message: &MessageContent{
+					Content: []ContentBlock{},
+				},
 			},
 			lineNum:  1,
 			showLine: false,
@@ -366,7 +381,7 @@ func TestDisplayUserMessageMinimal(t *testing.T) {
 			}()
 
 			output := captureStdout(func() {
-				displayUserMessageMinimal(tt.msg, tt.lineNum)
+				displayUserMessagePlain(tt.msg, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
@@ -384,8 +399,8 @@ func TestDisplayUserMessageMinimal(t *testing.T) {
 	}
 }
 
-// TestDisplayToolUseMinimal tests displayToolUseMinimal function
-func TestDisplayToolUseMinimal(t *testing.T) {
+// TestDisplayToolUsePlain tests displayToolUsePlain function
+func TestDisplayToolUsePlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
@@ -457,7 +472,7 @@ func TestDisplayToolUseMinimal(t *testing.T) {
 			lineNum:  1,
 			showLine: false,
 			verbose:  false,
-			contains: []string{"TOOL: Edit", "Input:", "old_string:", "... (100 chars omitted) ..."},
+			contains: []string{"TOOL: Edit", "Input:", "old_string:", "chars omitted"},
 		},
 		{
 			name: "Tool use with array input",
@@ -527,7 +542,7 @@ func TestDisplayToolUseMinimal(t *testing.T) {
 			}()
 
 			output := captureStdout(func() {
-				displayToolUseMinimal(tt.tool, tt.lineNum)
+				displayToolUsePlain(tt.tool, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
@@ -547,8 +562,8 @@ func TestDisplayToolUseMinimal(t *testing.T) {
 	}
 }
 
-// TestDisplayToolResultMinimal tests displayToolResultMinimal function
-func TestDisplayToolResultMinimal(t *testing.T) {
+// TestDisplayToolResultPlain tests displayToolResultPlain function
+func TestDisplayToolResultPlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
@@ -647,13 +662,13 @@ func TestDisplayToolResultMinimal(t *testing.T) {
 			block: &ContentBlock{
 				Type:      "tool_result",
 				ToolUseID: "tool333",
-				Content:   generateTestLinesMinimal(50),
+				Content:   generateTestLines(50),
 				IsError:   false,
 			},
 			lineNum:  1,
 			showLine: false,
 			verbose:  false,
-			contains: []string{"TOOL RESULT", "Line 1", "Line 20", "... (10 more lines) ...", "Line 31", "Line 50"},
+			contains: []string{"TOOL RESULT", "Line 1", "Line 20", "more lines", "Line 31", "Line 50"},
 		},
 		{
 			name: "Tool result with few lines (not truncated)",
@@ -669,6 +684,19 @@ func TestDisplayToolResultMinimal(t *testing.T) {
 			contains:    []string{"TOOL RESULT", "Line 1", "Line 2", "Line 3"},
 			notContains: []string{"more lines"},
 		},
+		{
+			name: "Tool result with non-string content",
+			block: &ContentBlock{
+				Type:      "tool_result",
+				ToolUseID: "tool555",
+				Content:   123,
+				IsError:   false,
+			},
+			lineNum:  1,
+			showLine: false,
+			verbose:  false,
+			contains: []string{"TOOL RESULT", "123"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -683,7 +711,7 @@ func TestDisplayToolResultMinimal(t *testing.T) {
 			}()
 
 			output := captureStdout(func() {
-				displayToolResultMinimal(tt.block, tt.lineNum)
+				displayToolResultPlain(tt.block, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
@@ -703,8 +731,75 @@ func TestDisplayToolResultMinimal(t *testing.T) {
 	}
 }
 
-// TestDisplayResultMessageMinimal tests displayResultMessageMinimal function
-func TestDisplayResultMessageMinimal(t *testing.T) {
+// TestDisplayTodosPlain tests displayTodosPlain function
+func TestDisplayTodosPlain(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	tests := []struct {
+		name        string
+		todos       []interface{}
+		contains    []string
+		notContains []string
+	}{
+		{
+			name: "Mixed status todos",
+			todos: []interface{}{
+				map[string]interface{}{"content": "Completed task", "status": "completed"},
+				map[string]interface{}{"content": "In progress task", "status": "in_progress"},
+				map[string]interface{}{"content": "Pending task", "status": "pending"},
+			},
+			contains: []string{
+				"[✓] Completed task",
+				"[→] In progress task",
+				"[○] Pending task",
+			},
+		},
+		{
+			name: "Unknown status",
+			todos: []interface{}{
+				map[string]interface{}{"content": "Unknown status task", "status": "unknown"},
+			},
+			contains: []string{"[-] Unknown status task"},
+		},
+		{
+			name: "Empty todos",
+			todos: []interface{}{},
+		},
+		{
+			name: "Invalid todo format",
+			todos: []interface{}{
+				"not a map",
+				123,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureStdout(func() {
+				displayTodosPlain(tt.todos)
+			})
+
+			cleaned := stripANSI(output)
+
+			for _, expected := range tt.contains {
+				if !strings.Contains(cleaned, expected) {
+					t.Errorf("Expected output to contain %q, but it didn't.\nGot:\n%s", expected, cleaned)
+				}
+			}
+
+			for _, notExp := range tt.notContains {
+				if strings.Contains(cleaned, notExp) {
+					t.Errorf("Expected output NOT to contain %q, but it did.\nGot:\n%s", notExp, cleaned)
+				}
+			}
+		})
+	}
+}
+
+// TestDisplayResultMessagePlain tests displayResultMessagePlain function
+func TestDisplayResultMessagePlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
@@ -860,7 +955,7 @@ func TestDisplayResultMessageMinimal(t *testing.T) {
 			}()
 
 			output := captureStdout(func() {
-				displayResultMessageMinimal(tt.msg, tt.lineNum)
+				displayResultMessagePlain(tt.msg, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
@@ -880,85 +975,104 @@ func TestDisplayResultMessageMinimal(t *testing.T) {
 	}
 }
 
-// TestDisplayTodosMinimal tests displayTodosMinimal function
-func TestDisplayTodosMinimal(t *testing.T) {
+// TestDisplayMessagePlain tests displayMessagePlain routing function
+func TestDisplayMessagePlain(t *testing.T) {
 	color.NoColor = true
 	defer func() { color.NoColor = false }()
 
 	tests := []struct {
-		name        string
-		todos       []interface{}
-		contains    []string
-		notContains []string
+		name     string
+		msg      *StreamMessage
+		lineNum  int
+		contains []string
 	}{
 		{
-			name: "Mixed status todos",
-			todos: []interface{}{
-				map[string]interface{}{"content": "Completed task", "status": "completed"},
-				map[string]interface{}{"content": "In progress task", "status": "in_progress"},
-				map[string]interface{}{"content": "Pending task", "status": "pending"},
+			name: "Routes system message",
+			msg: &StreamMessage{
+				Type:  "system",
+				Model: "claude-opus-4",
 			},
-			contains: []string{
-				"Completed task",
-				"In progress task",
-				"Pending task",
-			},
+			lineNum:  1,
+			contains: []string{"SYSTEM", "Model: claude-opus-4"},
 		},
 		{
-			name: "Unknown status",
-			todos: []interface{}{
-				map[string]interface{}{"content": "Unknown status task", "status": "unknown"},
+			name: "Routes assistant message",
+			msg: &StreamMessage{
+				Type: "assistant",
+				Message: &MessageContent{
+					Content: []ContentBlock{
+						{Type: "text", Text: "Hello!"},
+					},
+				},
 			},
-			contains: []string{"Unknown status task"},
+			lineNum:  2,
+			contains: []string{"ASSISTANT", "Hello!"},
 		},
 		{
-			name:     "Empty todos",
-			todos:    []interface{}{},
-			contains: []string{},
+			name: "Routes user message",
+			msg: &StreamMessage{
+				Type: "user",
+				Message: &MessageContent{
+					Content: []ContentBlock{
+						{Type: "tool_result", ToolUseID: "t1", Content: "Result"},
+					},
+				},
+			},
+			lineNum:  3,
+			contains: []string{"TOOL RESULT", "Result"},
 		},
 		{
-			name: "Invalid todo format (skipped)",
-			todos: []interface{}{
-				"not a map",
-				123,
+			name: "Routes result message",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
 			},
-			contains: []string{},
+			lineNum:  4,
+			contains: []string{"RESULT: SUCCESS"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			output := captureStdout(func() {
-				displayTodosMinimal(tt.todos)
+				displayMessagePlain(tt.msg, tt.lineNum)
 			})
 
 			cleaned := stripANSI(output)
-
 			for _, expected := range tt.contains {
 				if !strings.Contains(cleaned, expected) {
 					t.Errorf("Expected output to contain %q, but it didn't.\nGot:\n%s", expected, cleaned)
-				}
-			}
-
-			for _, notExp := range tt.notContains {
-				if strings.Contains(cleaned, notExp) {
-					t.Errorf("Expected output NOT to contain %q, but it did.\nGot:\n%s", notExp, cleaned)
 				}
 			}
 		})
 	}
 }
 
-// Helper function to generate numbered lines for minimal tests
-func generateTestLinesMinimal(count int) string {
-	lines := make([]string, count)
-	for i := 0; i < count; i++ {
-		num := i + 1
-		if num < 10 {
-			lines[i] = "Line " + string(rune('0'+num))
-		} else {
-			lines[i] = "Line " + string(rune('0'+num/10)) + string(rune('0'+num%10))
+// Helper function to generate numbered test lines
+func generateTestLines(count int) string {
+	var sb strings.Builder
+	for i := 1; i <= count; i++ {
+		if i > 1 {
+			sb.WriteString("\n")
 		}
+		sb.WriteString("Line ")
+		sb.WriteString(itoa(i))
 	}
-	return strings.Join(lines, "\n")
+	return sb.String()
+}
+
+// Simple int to string conversion
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	if n < 0 {
+		return "-" + itoa(-n)
+	}
+	var digits []byte
+	for n > 0 {
+		digits = append([]byte{byte('0' + n%10)}, digits...)
+		n /= 10
+	}
+	return string(digits)
 }

@@ -1215,6 +1215,124 @@ func TestDisplayToolResultCompact(t *testing.T) {
 	}
 }
 
+// TestDisplayResultMessageCompact tests the compact style displayResultMessageCompact function
+func TestDisplayResultMessageCompact(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	tests := []struct {
+		name        string
+		msg         *StreamMessage
+		lineNum     int
+		showLine    bool
+		contains    []string
+		notContains []string
+	}{
+		{
+			name: "Success result",
+			msg: &StreamMessage{
+				Type:         "result",
+				IsError:      false,
+				NumTurns:     5,
+				DurationMS:   15000,
+				TotalCostUSD: 0.0025,
+				Usage: &Usage{
+					InputTokens:  1000,
+					OutputTokens: 500,
+				},
+			},
+			lineNum:  1,
+			showLine: false,
+			contains: []string{
+				"OK",
+				"turns=5",
+				"15.00s",
+				"$0.0025",
+				"in=1000 out=500",
+			},
+			notContains: []string{"FAIL"},
+		},
+		{
+			name: "Error result",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: true,
+			},
+			lineNum:  1,
+			showLine: false,
+			contains: []string{"FAIL"},
+		},
+		{
+			name: "Result with line number",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+			},
+			lineNum:  47,
+			showLine: true,
+			contains: []string{"OK", "L47"},
+		},
+		{
+			name: "Result with result text",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+				Result:  "Task completed successfully",
+			},
+			lineNum:  1,
+			showLine: false,
+			contains: []string{"Task completed successfully"},
+		},
+		{
+			name: "Result with long text (truncated)",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+				Result:  strings.Repeat("x", 250),
+			},
+			lineNum:  1,
+			showLine: false,
+			contains: []string{"..."},
+		},
+		{
+			name: "Result with multiline text (flattened)",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+				Result:  "Line 1\nLine 2\nLine 3",
+			},
+			lineNum:  1,
+			showLine: false,
+			contains: []string{"Line 1 Line 2 Line 3"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldShowLineNum := *showLineNum
+			*showLineNum = tt.showLine
+			defer func() { *showLineNum = oldShowLineNum }()
+
+			output := captureStdout(func() {
+				displayResultMessageCompact(tt.msg, tt.lineNum)
+			})
+
+			cleaned := stripANSI(output)
+			for _, expected := range tt.contains {
+				if !strings.Contains(cleaned, expected) {
+					t.Errorf("displayResultMessageCompact() output missing %q\nGot: %q", expected, cleaned)
+				}
+			}
+
+			for _, notExp := range tt.notContains {
+				if strings.Contains(cleaned, notExp) {
+					t.Errorf("displayResultMessageCompact() output should NOT contain %q\nGot: %q", notExp, cleaned)
+				}
+			}
+		})
+	}
+}
+
 // TestDisplaySystemMessage tests the default style displaySystemMessage function
 func TestDisplaySystemMessage(t *testing.T) {
 	// Disable colors for testing

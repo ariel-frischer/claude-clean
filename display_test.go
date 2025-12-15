@@ -690,3 +690,327 @@ func TestDisplayToolResult(t *testing.T) {
 		})
 	}
 }
+
+// TestDisplayResultMessage tests the default style displayResultMessage function
+func TestDisplayResultMessage(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	tests := []struct {
+		name             string
+		msg              *StreamMessage
+		lineNum          int
+		showLineNum      bool
+		verboseMode      bool
+		expectedIncludes []string
+		expectedExcludes []string
+	}{
+		{
+			name: "Success result",
+			msg: &StreamMessage{
+				Type:         "result",
+				IsError:      false,
+				NumTurns:     5,
+				DurationMS:   15000,
+				TotalCostUSD: 0.0025,
+				Usage: &Usage{
+					InputTokens:  1000,
+					OutputTokens: 500,
+				},
+			},
+			lineNum:     1,
+			showLineNum: false,
+			verboseMode: false,
+			expectedIncludes: []string{
+				"RESULT: SUCCESS",
+				"Turns: 5",
+				"Duration: 15.00s",
+				"Cost: $0.0025",
+				"Tokens: in=1000 out=500",
+			},
+			expectedExcludes: []string{"ERROR"},
+		},
+		{
+			name: "Error result",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: true,
+			},
+			lineNum:          1,
+			showLineNum:      false,
+			verboseMode:      false,
+			expectedIncludes: []string{"RESULT: ERROR"},
+		},
+		{
+			name: "Result with line number",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+			},
+			lineNum:          47,
+			showLineNum:      true,
+			verboseMode:      false,
+			expectedIncludes: []string{"RESULT: SUCCESS", "(line 47)"},
+		},
+		{
+			name: "Result with API duration",
+			msg: &StreamMessage{
+				Type:          "result",
+				IsError:       false,
+				DurationMS:    10000,
+				DurationAPIMS: 8000,
+			},
+			lineNum:          1,
+			showLineNum:      false,
+			verboseMode:      false,
+			expectedIncludes: []string{"Duration: 10.00s", "(API: 8.00s)"},
+		},
+		{
+			name: "Result with cache tokens",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+				Usage: &Usage{
+					InputTokens:              2000,
+					OutputTokens:             1000,
+					CacheReadInputTokens:     1500,
+					CacheCreationInputTokens: 500,
+				},
+			},
+			lineNum:     1,
+			showLineNum: false,
+			verboseMode: false,
+			expectedIncludes: []string{
+				"Tokens: in=2000 out=1000",
+				"cache_read=1500",
+				"cache_create=500",
+			},
+		},
+		{
+			name: "Result with result text",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+				Result:  "Task completed successfully",
+			},
+			lineNum:          1,
+			showLineNum:      false,
+			verboseMode:      false,
+			expectedIncludes: []string{"Task completed successfully"},
+		},
+		{
+			name: "Result with permission denials",
+			msg: &StreamMessage{
+				Type:              "result",
+				IsError:           false,
+				PermissionDenials: []interface{}{"Denied action 1", "Denied action 2"},
+			},
+			lineNum:          1,
+			showLineNum:      false,
+			verboseMode:      false,
+			expectedIncludes: []string{"Permission Denials: 2"},
+		},
+		{
+			name: "Result with model usage in verbose mode",
+			msg: &StreamMessage{
+				Type:    "result",
+				IsError: false,
+				ModelUsage: map[string]interface{}{
+					"claude-opus-4": map[string]interface{}{
+						"inputTokens":  float64(1000),
+						"outputTokens": float64(500),
+						"costUSD":      float64(0.05),
+					},
+				},
+			},
+			lineNum:     1,
+			showLineNum: false,
+			verboseMode: true,
+			expectedIncludes: []string{
+				"Model Usage:",
+				"claude-opus-4:",
+				"Input: 1000 tokens",
+				"Output: 500 tokens",
+				"Cost: $0.0500",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			origShowLineNum := *showLineNum
+			origVerbose := *verbose
+			*showLineNum = tt.showLineNum
+			*verbose = tt.verboseMode
+			defer func() {
+				*showLineNum = origShowLineNum
+				*verbose = origVerbose
+			}()
+
+			output := captureStdout(func() {
+				displayResultMessage(tt.msg, tt.lineNum)
+			})
+
+			for _, expected := range tt.expectedIncludes {
+				if !strings.Contains(output, expected) {
+					t.Errorf("displayResultMessage() output missing %q\nGot:\n%s", expected, output)
+				}
+			}
+
+			for _, excluded := range tt.expectedExcludes {
+				if strings.Contains(output, excluded) {
+					t.Errorf("displayResultMessage() output should not contain %q\nGot:\n%s", excluded, output)
+				}
+			}
+		})
+	}
+}
+
+// TestDisplayTodos tests the default style displayTodos function
+func TestDisplayTodos(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	tests := []struct {
+		name             string
+		todos            []interface{}
+		expectedIncludes []string
+		expectedExcludes []string
+	}{
+		{
+			name: "Mixed status todos",
+			todos: []interface{}{
+				map[string]interface{}{"content": "Completed task", "status": "completed"},
+				map[string]interface{}{"content": "In progress task", "status": "in_progress"},
+				map[string]interface{}{"content": "Pending task", "status": "pending"},
+			},
+			expectedIncludes: []string{
+				"Completed task",
+				"In progress task",
+				"Pending task",
+			},
+		},
+		{
+			name: "Unknown status",
+			todos: []interface{}{
+				map[string]interface{}{"content": "Unknown status task", "status": "unknown"},
+			},
+			expectedIncludes: []string{"Unknown status task"},
+		},
+		{
+			name:             "Empty todos",
+			todos:            []interface{}{},
+			expectedIncludes: []string{},
+		},
+		{
+			name: "Invalid todo format (skipped)",
+			todos: []interface{}{
+				"not a map",
+				123,
+			},
+			expectedIncludes: []string{},
+		},
+		{
+			name: "Todo without status defaults to dash",
+			todos: []interface{}{
+				map[string]interface{}{"content": "No status task"},
+			},
+			expectedIncludes: []string{"No status task"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureStdout(func() {
+				displayTodos(tt.todos)
+			})
+
+			for _, expected := range tt.expectedIncludes {
+				if !strings.Contains(output, expected) {
+					t.Errorf("displayTodos() output missing %q\nGot:\n%s", expected, output)
+				}
+			}
+
+			for _, excluded := range tt.expectedExcludes {
+				if strings.Contains(output, excluded) {
+					t.Errorf("displayTodos() output should not contain %q\nGot:\n%s", excluded, output)
+				}
+			}
+		})
+	}
+}
+
+// TestDisplayUsage tests the default style displayUsage function
+func TestDisplayUsage(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	tests := []struct {
+		name             string
+		usage            *Usage
+		expectedIncludes []string
+	}{
+		{
+			name: "Basic usage with input and output tokens",
+			usage: &Usage{
+				InputTokens:  100,
+				OutputTokens: 50,
+			},
+			expectedIncludes: []string{"Tokens: in=100 out=50"},
+		},
+		{
+			name: "Usage with cache read tokens",
+			usage: &Usage{
+				InputTokens:          200,
+				OutputTokens:         75,
+				CacheReadInputTokens: 150,
+			},
+			expectedIncludes: []string{"Tokens: in=200 out=75", "cache_read=150"},
+		},
+		{
+			name: "Usage with cache creation tokens",
+			usage: &Usage{
+				InputTokens:              300,
+				OutputTokens:             100,
+				CacheCreationInputTokens: 250,
+			},
+			expectedIncludes: []string{"Tokens: in=300 out=100", "cache_create=250"},
+		},
+		{
+			name: "Usage with both cache types",
+			usage: &Usage{
+				InputTokens:              500,
+				OutputTokens:             200,
+				CacheReadInputTokens:     300,
+				CacheCreationInputTokens: 150,
+			},
+			expectedIncludes: []string{
+				"Tokens: in=500 out=200",
+				"cache_read=300",
+				"cache_create=150",
+			},
+		},
+		{
+			name: "Zero tokens",
+			usage: &Usage{
+				InputTokens:  0,
+				OutputTokens: 0,
+			},
+			expectedIncludes: []string{"Tokens: in=0 out=0"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureStdout(func() {
+				displayUsage(tt.usage)
+			})
+
+			for _, expected := range tt.expectedIncludes {
+				if !strings.Contains(output, expected) {
+					t.Errorf("displayUsage() output missing %q\nGot:\n%s", expected, output)
+				}
+			}
+		})
+	}
+}
