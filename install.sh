@@ -100,20 +100,23 @@ main() {
 
     info "Detected: ${OS}/${ARCH}"
 
-    # Get latest version tag
-    VERSION=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
-    if [ -z "$VERSION" ]; then
-        error "Failed to get latest version"
-    fi
-
-    # Build download URL for archive
+    # Build asset pattern to match
     if [ "$OS" = "windows" ]; then
-        ARCHIVE_FILE="${BINARY_NAME}_${VERSION}_${OS}_${ARCH}.zip"
+        ASSET_PATTERN="${BINARY_NAME}_.*_${OS}_${ARCH}\.zip"
     else
-        ARCHIVE_FILE="${BINARY_NAME}_${VERSION}_${OS}_${ARCH}.tar.gz"
+        ASSET_PATTERN="${BINARY_NAME}_.*_${OS}_${ARCH}\.tar\.gz"
     fi
 
-    DOWNLOAD_URL="${GITHUB_URL}/releases/latest/download/${ARCHIVE_FILE}"
+    # Get download URL from GitHub API
+    RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest")
+    DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep -o "\"browser_download_url\": \"[^\"]*${OS}_${ARCH}[^\"]*\"" | grep -E "\.(tar\.gz|zip)\"" | head -1 | sed 's/"browser_download_url": "//' | sed 's/"$//')
+    VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+
+    if [ -z "$DOWNLOAD_URL" ]; then
+        error "Failed to find download URL for ${OS}/${ARCH}"
+    fi
+
+    ARCHIVE_FILE=$(basename "$DOWNLOAD_URL")
 
     # Determine install location
     INSTALL_DIR=$(get_install_dir)
