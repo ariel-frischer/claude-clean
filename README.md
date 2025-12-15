@@ -104,80 +104,15 @@ Or use the Makefile:
 make install  # Builds and installs to ~/.local/bin with optional alias setup
 ```
 
-## Quick Setup (Recommended)
-
-For the best experience, add a shell alias so you can use `cclean "your prompt"` instead of typing the full command every time.
-
-**Important:** Choose your authentication method:
-- **Option 1 (Recommended):** OAuth - Uses your Claude Pro/Team plan (FREE, no API costs)
-  - Sets `ANTHROPIC_API_KEY=""` which forces Claude CLI to use OAuth and your plan instead of API billing
-- **Option 2:** API Key - Pay-per-use charges to your Anthropic API account
-  - Uses your configured API key, you'll be billed per request
-
-### Bash or Zsh
-
-Add **ONE** of these to your `~/.bashrc` or `~/.zshrc`:
-
-**Option 1 - OAuth (Claude Pro/Team plan, FREE):**
-```bash
-cclean() {
-  # Setting ANTHROPIC_API_KEY="" forces OAuth, ignoring any API key
-  ANTHROPIC_API_KEY="" claude -p "$*" --verbose --output-format stream-json | claude-clean
-}
-```
-
-**Option 2 - API Key (pay-per-use):**
-```bash
-cclean() {
-  # Uses configured API key, you'll be billed per request
-  claude -p "$*" --verbose --output-format stream-json | claude-clean
-}
-```
-
-Then reload your shell:
-```bash
-source ~/.bashrc  # or source ~/.zshrc
-```
-
-### Fish
-
-Add **ONE** of these to your `~/.config/fish/config.fish`:
-
-**Option 1 - OAuth (Claude Pro/Team plan, FREE):**
-```fish
-function cclean
-  # Setting ANTHROPIC_API_KEY="" forces OAuth, ignoring any API key
-  env ANTHROPIC_API_KEY="" claude -p $argv --verbose --output-format stream-json | claude-clean
-end
-```
-
-**Option 2 - API Key (pay-per-use):**
-```fish
-function cclean
-  # Uses configured API key, you'll be billed per request
-  claude -p $argv --verbose --output-format stream-json | claude-clean
-end
-```
-
-Then reload:
-```fish
-source ~/.config/fish/config.fish
-```
-
-### Usage after setup:
-
-```bash
-cclean "what is 2+2"
-cclean "help me debug this error"
-```
-
-Much cleaner than typing the full command every time!
-
 ## Usage
 
 ### Live streaming with Claude Code (recommended):
 ```bash
-claude -p "what is 2+2" --verbose --output-format stream-json | ./claude-clean
+# Uses your configured API key (pay-per-use)
+claude -p "what is 2+2" --verbose --output-format stream-json | claude-clean
+
+# Or use OAuth with your Claude Pro/Team plan (FREE, no API costs)
+ANTHROPIC_API_KEY="" claude -p "what is 2+2" --verbose --output-format stream-json | claude-clean
 ```
 
 ### From a log file:

@@ -49,7 +49,7 @@ make test
 
 # Build and test locally
 make build
-./cclean mocks/claude-stream-json-simple.jsonl
+./bin/cclean mocks/claude-stream-json-simple.jsonl
 ```
 
 ### 4. Commit

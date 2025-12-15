@@ -51,6 +51,7 @@ claude-clean/
 ├── go.sum               # Dependency checksums
 ├── install.sh           # One-line installer script
 ├── .goreleaser.yaml     # GoReleaser config
+├── bin/                 # Build output (gitignored)
 ├── mocks/               # Sample JSONL test data
 ├── scripts/             # Helper scripts
 ├── docs/                # Documentation
@@ -87,16 +88,16 @@ make test
 make run
 
 # Or test with real Claude output
-claude -p "test prompt" --verbose --output-format stream-json | ./cclean
+claude -p "test prompt" --verbose --output-format stream-json | ./bin/cclean
 ```
 
 ### 3. Test Different Output Styles
 
 ```bash
-./cclean -s default mocks/claude-stream-json-simple.jsonl
-./cclean -s compact mocks/claude-stream-json-simple.jsonl
-./cclean -s minimal mocks/claude-stream-json-simple.jsonl
-./cclean -s plain mocks/claude-stream-json-simple.jsonl
+./bin/cclean -s default mocks/claude-stream-json-simple.jsonl
+./bin/cclean -s compact mocks/claude-stream-json-simple.jsonl
+./bin/cclean -s minimal mocks/claude-stream-json-simple.jsonl
+./bin/cclean -s plain mocks/claude-stream-json-simple.jsonl
 ```
 
 ## CI Pipeline
@@ -139,7 +140,7 @@ Sample JSONL files in `mocks/` directory can be used for testing:
 
 ```bash
 # Run with mock data
-./cclean mocks/claude-stream-json-simple.jsonl
+./bin/cclean mocks/claude-stream-json-simple.jsonl
 
 # Create new mock data
 claude -p "your prompt" --verbose --output-format stream-json > mocks/new-test.jsonl
