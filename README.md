@@ -117,30 +117,30 @@ ANTHROPIC_API_KEY="" claude -p "what is 2+2" --verbose --output-format stream-js
 
 ### From a log file:
 ```bash
-./claude-clean mocks/claude-stream-json-simple.jsonl
+claude-clean log.jsonl
 ```
 
 ### From stdin (pipe):
 ```bash
-cat mocks/claude-stream-json-simple.jsonl | ./claude-clean
+cat log.jsonl | claude-clean
 ```
 
 ### Using different output styles:
 ```bash
 # Default style (boxed format with colors)
-./claude-clean log.jsonl
+claude-clean log.jsonl
 
 # Compact style (minimal single-line format)
-./claude-clean -s compact log.jsonl
+claude-clean -s compact log.jsonl
 
 # Minimal style (simple indented format, no boxes)
-./claude-clean -s minimal log.jsonl
+claude-clean -s minimal log.jsonl
 
 # Plain style (no colors, no boxes)
-./claude-clean -s plain log.jsonl
+claude-clean -s plain log.jsonl
 
 # Verbose output with compact style
-./claude-clean -v -s compact log.jsonl
+claude-clean -v -s compact log.jsonl
 ```
 
 ## Output Styles
