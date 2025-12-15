@@ -30,19 +30,19 @@ jobs:
         VERSION=${GITHUB_REF_NAME}
 
         # Linux AMD64
-        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o cclean-linux-amd64 .
+        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o cclean-linux-amd64 ./cmd/cclean
 
         # Linux ARM64
-        GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o cclean-linux-arm64 .
+        GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o cclean-linux-arm64 ./cmd/cclean
 
         # macOS AMD64
-        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o cclean-darwin-amd64 .
+        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o cclean-darwin-amd64 ./cmd/cclean
 
         # macOS ARM64 (Apple Silicon)
-        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o cclean-darwin-arm64 .
+        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o cclean-darwin-arm64 ./cmd/cclean
 
         # Windows AMD64
-        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o cclean-windows-amd64.exe .
+        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o cclean-windows-amd64.exe ./cmd/cclean
 
     - name: Generate checksums
       run: |
