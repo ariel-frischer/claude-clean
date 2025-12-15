@@ -613,7 +613,7 @@ func TestDisplayToolResult(t *testing.T) {
 			block: &ContentBlock{
 				Type:      "tool_result",
 				ToolUseID: "tool_long",
-				Content:   strings.Join(make([]string, 50), "\n"),
+				Content:   strings.Repeat("line\n", 50),
 				IsError:   false,
 			},
 			lineNum:     1,
