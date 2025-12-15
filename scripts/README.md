@@ -1,6 +1,6 @@
 # Release Scripts
 
-Scripts for building and releasing claude-clean-output binaries.
+Scripts for building and releasing cclean binaries.
 
 ## Usage
 
@@ -54,11 +54,11 @@ You can also run the scripts directly:
 ## What gets released
 
 Each release includes:
-- `claude-clean-linux-amd64` - Linux 64-bit
-- `claude-clean-linux-arm64` - Linux ARM 64-bit
-- `claude-clean-darwin-amd64` - macOS Intel
-- `claude-clean-darwin-arm64` - macOS Apple Silicon
-- `claude-clean-windows-amd64.exe` - Windows 64-bit
+- `cclean-linux-amd64` - Linux 64-bit
+- `cclean-linux-arm64` - Linux ARM 64-bit
+- `cclean-darwin-amd64` - macOS Intel
+- `cclean-darwin-arm64` - macOS Apple Silicon
+- `cclean-windows-amd64.exe` - Windows 64-bit
 - `SHA256SUMS` - Checksums for verification
 
 ## Binary optimization

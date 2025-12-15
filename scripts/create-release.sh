@@ -58,7 +58,7 @@ fi
 # Create the release
 echo "Creating GitHub release..."
 gh release create "${VERSION}" \
-    ${OUTPUT_DIR}/claude-clean-* \
+    ${OUTPUT_DIR}/cclean-* \
     ${OUTPUT_DIR}/SHA256SUMS \
     --title "${VERSION}" \
     --notes "${NOTES}"

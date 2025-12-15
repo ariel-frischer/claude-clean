@@ -48,12 +48,12 @@ The binary name is constructed dynamically:
 
 ```bash
 # Linux/macOS
-BINARY_FILE="claude-clean-${OS}-${ARCH}"
-# Example: claude-clean-linux-amd64
+BINARY_FILE="cclean-${OS}-${ARCH}"
+# Example: cclean-linux-amd64
 
 # Windows
-BINARY_FILE="claude-clean-${OS}-${ARCH}.exe"
-# Example: claude-clean-windows-amd64.exe
+BINARY_FILE="cclean-${OS}-${ARCH}.exe"
+# Example: cclean-windows-amd64.exe
 ```
 
 Final URL:
@@ -131,19 +131,18 @@ Add this to your shell config:
 After installation, the script runs `--version` to confirm success:
 
 ```bash
-Successfully installed claude-clean to /home/user/.local/bin/claude-clean
-Version: claude-clean v0.2.1
+Successfully installed cclean to /home/user/.local/bin/cclean
+Version: cclean v0.2.1
 ```
 
-### Shell Alias Setup
-
-The script provides a recommended shell function:
+### Usage After Install
 
 ```bash
-# Add to ~/.bashrc or ~/.zshrc:
-cclean() {
-  claude -p "$*" --verbose --output-format stream-json | claude-clean
-}
+# Pipe from Claude Code
+claude -p "your prompt" --verbose --output-format stream-json | cclean
+
+# Or read from file
+cclean logfile.jsonl
 ```
 
 ## Security Considerations

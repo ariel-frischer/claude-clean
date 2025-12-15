@@ -82,11 +82,11 @@ Each release includes:
 
 | File | Description |
 |------|-------------|
-| `claude-clean-linux-amd64` | Linux x86_64 binary |
-| `claude-clean-linux-arm64` | Linux ARM64 binary |
-| `claude-clean-darwin-amd64` | macOS Intel binary |
-| `claude-clean-darwin-arm64` | macOS Apple Silicon binary |
-| `claude-clean-windows-amd64.exe` | Windows x86_64 binary |
+| `cclean-linux-amd64` | Linux x86_64 binary |
+| `cclean-linux-arm64` | Linux ARM64 binary |
+| `cclean-darwin-amd64` | macOS Intel binary |
+| `cclean-darwin-arm64` | macOS Apple Silicon binary |
+| `cclean-windows-amd64.exe` | Windows x86_64 binary |
 | `SHA256SUMS` / `checksums.txt` | SHA256 checksums |
 
 ## Workflow

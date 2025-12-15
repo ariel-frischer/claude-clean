@@ -1,25 +1,25 @@
 # USAGE
 
-How to use claude-clean to format Claude Code's streaming JSON output.
+How to use cclean to format Claude Code's streaming JSON output.
 
 ## Basic Usage
 
 ### Pipe from Claude Code (Recommended)
 
 ```bash
-claude -p "your prompt" --verbose --output-format stream-json | claude-clean
+claude -p "your prompt" --verbose --output-format stream-json | cclean
 ```
 
 ### Read from File
 
 ```bash
-claude-clean logfile.jsonl
+cclean logfile.jsonl
 ```
 
 ### Read from Stdin
 
 ```bash
-cat logfile.jsonl | claude-clean
+cat logfile.jsonl | cclean
 ```
 
 ## Shell Alias Setup
@@ -30,29 +30,29 @@ For convenience, add a shell function to your config:
 
 ```bash
 # Using OAuth (Claude Pro/Team plan - FREE)
-cclean() {
-  ANTHROPIC_API_KEY="" claude -p "$*" --verbose --output-format stream-json | claude-clean
+cc() {
+  ANTHROPIC_API_KEY="" claude -p "$*" --verbose --output-format stream-json | cclean
 }
 
 # Or using API key (pay-per-use)
-cclean() {
-  claude -p "$*" --verbose --output-format stream-json | claude-clean
+cc() {
+  claude -p "$*" --verbose --output-format stream-json | cclean
 }
 ```
 
 ### Fish (`~/.config/fish/config.fish`)
 
 ```fish
-function cclean
-  env ANTHROPIC_API_KEY="" claude -p $argv --verbose --output-format stream-json | claude-clean
+function cc
+  env ANTHROPIC_API_KEY="" claude -p $argv --verbose --output-format stream-json | cclean
 end
 ```
 
 Then use simply:
 
 ```bash
-cclean "what is 2+2"
-cclean "help me debug this error"
+cc "what is 2+2"
+cc "help me debug this error"
 ```
 
 ## Command Line Flags
@@ -102,7 +102,7 @@ OK turns=2 1.23s $0.0012
 
 Use with:
 ```bash
-claude-clean -s compact logfile.jsonl
+cclean -s compact logfile.jsonl
 ```
 
 ### Minimal
@@ -124,7 +124,7 @@ TOOL: Bash
 
 Use with:
 ```bash
-claude-clean -s minimal logfile.jsonl
+cclean -s minimal logfile.jsonl
 ```
 
 ### Plain
@@ -141,12 +141,12 @@ ASSISTANT
 
 Use with:
 ```bash
-claude-clean -s plain logfile.jsonl > output.txt
+cclean -s plain logfile.jsonl > output.txt
 ```
 
 ## Message Types
 
-Claude-clean parses and formats these message types:
+cclean parses and formats these message types:
 
 | Type | Color | Description |
 |------|-------|-------------|
@@ -162,27 +162,27 @@ Claude-clean parses and formats these message types:
 ### Basic prompt
 
 ```bash
-cclean "what is 2+2"
+cc "what is 2+2"
 ```
 
 ### Complex task with verbose output
 
 ```bash
 claude -p "refactor main.go to use interfaces" \
-  --verbose --output-format stream-json | claude-clean -V
+  --verbose --output-format stream-json | cclean -V
 ```
 
 ### Save formatted output
 
 ```bash
 claude -p "explain this code" --verbose --output-format stream-json \
-  | claude-clean -s plain > explanation.txt
+  | cclean -s plain > explanation.txt
 ```
 
 ### View with line numbers
 
 ```bash
-claude-clean -l -s minimal logfile.jsonl
+cclean -l -s minimal logfile.jsonl
 ```
 
 ### Real-time streaming
@@ -190,7 +190,7 @@ claude-clean -l -s minimal logfile.jsonl
 The tool handles real-time streaming naturally - output appears as Claude generates it:
 
 ```bash
-claude -p "write a long story" --verbose --output-format stream-json | claude-clean
+claude -p "write a long story" --verbose --output-format stream-json | cclean
 ```
 
 ## Why Use This?

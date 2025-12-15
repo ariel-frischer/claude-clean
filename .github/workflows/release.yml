@@ -30,33 +30,33 @@ jobs:
         VERSION=${GITHUB_REF_NAME}
 
         # Linux AMD64
-        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o claude-clean-linux-amd64 .
+        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o cclean-linux-amd64 .
 
         # Linux ARM64
-        GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o claude-clean-linux-arm64 .
+        GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o cclean-linux-arm64 .
 
         # macOS AMD64
-        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o claude-clean-darwin-amd64 .
+        GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o cclean-darwin-amd64 .
 
         # macOS ARM64 (Apple Silicon)
-        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o claude-clean-darwin-arm64 .
+        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o cclean-darwin-arm64 .
 
         # Windows AMD64
-        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o claude-clean-windows-amd64.exe .
+        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o cclean-windows-amd64.exe .
 
     - name: Generate checksums
       run: |
-        sha256sum claude-clean-* > SHA256SUMS
+        sha256sum cclean-* > SHA256SUMS
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          claude-clean-linux-amd64
-          claude-clean-linux-arm64
-          claude-clean-darwin-amd64
-          claude-clean-darwin-arm64
-          claude-clean-windows-amd64.exe
+          cclean-linux-amd64
+          cclean-linux-arm64
+          cclean-darwin-amd64
+          cclean-darwin-arm64
+          cclean-windows-amd64.exe
           SHA256SUMS
         generate_release_notes: true
         draft: false

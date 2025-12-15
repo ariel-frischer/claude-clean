@@ -81,22 +81,22 @@ Download from the [releases page](https://github.com/ariel-frischer/claude-clean
 
 | Platform | Download |
 |----------|----------|
-| Linux (x86_64) | [claude-clean-linux-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-linux-amd64) |
-| Linux (ARM64) | [claude-clean-linux-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-linux-arm64) |
-| macOS (Intel) | [claude-clean-darwin-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-amd64) |
-| macOS (Apple Silicon) | [claude-clean-darwin-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-darwin-arm64) |
-| Windows | [claude-clean-windows-amd64.exe](https://github.com/ariel-frischer/claude-clean/releases/latest/download/claude-clean-windows-amd64.exe) |
+| Linux (x86_64) | [cclean-linux-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-linux-amd64) |
+| Linux (ARM64) | [cclean-linux-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-linux-arm64) |
+| macOS (Intel) | [cclean-darwin-amd64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-darwin-amd64) |
+| macOS (Apple Silicon) | [cclean-darwin-arm64](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-darwin-arm64) |
+| Windows | [cclean-windows-amd64.exe](https://github.com/ariel-frischer/claude-clean/releases/latest/download/cclean-windows-amd64.exe) |
 
 After downloading, make it executable and move to your PATH:
 ```bash
-chmod +x claude-clean-*
-sudo mv claude-clean-* /usr/local/bin/claude-clean
+chmod +x cclean-*
+sudo mv cclean-* /usr/local/bin/cclean
 ```
 
 ### Option 3: Build from source
 
 ```bash
-go build -o claude-clean
+go build -o cclean
 ```
 
 Or use the Makefile:
@@ -109,38 +109,38 @@ make install  # Builds and installs to ~/.local/bin with optional alias setup
 ### Live streaming with Claude Code (recommended):
 ```bash
 # Uses your configured API key (pay-per-use)
-claude -p "what is 2+2" --verbose --output-format stream-json | claude-clean
+claude -p "what is 2+2" --verbose --output-format stream-json | cclean
 
 # Or use OAuth with your Claude Pro/Team plan (FREE, no API costs)
-ANTHROPIC_API_KEY="" claude -p "what is 2+2" --verbose --output-format stream-json | claude-clean
+ANTHROPIC_API_KEY="" claude -p "what is 2+2" --verbose --output-format stream-json | cclean
 ```
 
 ### From a log file:
 ```bash
-claude-clean log.jsonl
+cclean log.jsonl
 ```
 
 ### From stdin (pipe):
 ```bash
-cat log.jsonl | claude-clean
+cat log.jsonl | cclean
 ```
 
 ### Using different output styles:
 ```bash
 # Default style (boxed format with colors)
-claude-clean log.jsonl
+cclean log.jsonl
 
 # Compact style (minimal single-line format)
-claude-clean -s compact log.jsonl
+cclean -s compact log.jsonl
 
 # Minimal style (simple indented format, no boxes)
-claude-clean -s minimal log.jsonl
+cclean -s minimal log.jsonl
 
 # Plain style (no colors, no boxes)
-claude-clean -s plain log.jsonl
+cclean -s plain log.jsonl
 
 # Verbose output with compact style
-claude-clean -v -s compact log.jsonl
+cclean -v -s compact log.jsonl
 ```
 
 ## Output Styles

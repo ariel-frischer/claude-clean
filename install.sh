@@ -5,7 +5,7 @@
 set -e
 
 REPO="ariel-frischer/claude-clean"
-BINARY_NAME="claude-clean"
+BINARY_NAME="cclean"
 GITHUB_URL="https://github.com/${REPO}"
 
 # Colors (disabled if not a tty)
@@ -162,14 +162,11 @@ main() {
     echo
     success "Installation complete!"
     echo
-    info "Quick setup: Add a shell alias for easy use:"
+    info "Usage: cclean [options] [file.jsonl]"
     echo
-    echo "  # Add to ~/.bashrc or ~/.zshrc:"
-    echo "  cclean() {"
-    echo "    claude -p \"\$*\" --verbose --output-format stream-json | ${BINARY_NAME}"
-    echo "  }"
-    echo
-    info "Then use: cclean \"your prompt here\""
+    info "Examples:"
+    echo "  claude -p \"your prompt\" --verbose --output-format stream-json | cclean"
+    echo "  cclean log.jsonl"
     echo
     info "For more info: ${GITHUB_URL}"
 }

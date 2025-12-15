@@ -18,7 +18,7 @@ make help    # Show all available commands
 make build   # Build the binary
 ```
 
-This compiles the Go code and creates the `claude-clean-output` executable in the current directory.
+This compiles the Go code and creates the `cclean` executable in the `bin/` directory.
 
 ### Running
 
@@ -33,16 +33,16 @@ You can also run the binary directly:
 
 ```bash
 # From a file
-./claude-clean-output mocks/your-test-file.log
+./bin/cclean mocks/your-test-file.log
 
 # With verbose output
-./claude-clean-output -v mocks/your-test-file.log
+./bin/cclean -v mocks/your-test-file.log
 
 # From stdin
-cat mocks/your-test-file.log | ./claude-clean-output
+cat mocks/your-test-file.log | ./bin/cclean
 
 # Live with Claude Code
-claude-code -p "your prompt" --verbose --output-format stream-json | ./claude-clean-output
+claude -p "your prompt" --verbose --output-format stream-json | ./bin/cclean
 ```
 
 ### Testing

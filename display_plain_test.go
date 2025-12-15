@@ -763,7 +763,7 @@ func TestDisplayTodosPlain(t *testing.T) {
 			contains: []string{"[-] Unknown status task"},
 		},
 		{
-			name: "Empty todos",
+			name:  "Empty todos",
 			todos: []interface{}{},
 		},
 		{

@@ -5,7 +5,7 @@ set -e
 # Usage: ./scripts/build-binaries.sh [version]
 
 VERSION=${1:-"dev"}
-BINARY_NAME="claude-clean"
+BINARY_NAME="cclean"
 OUTPUT_DIR="release"
 
 echo "Building ${BINARY_NAME} binaries (version: ${VERSION})..."

@@ -237,28 +237,28 @@ func TestBinaryName(t *testing.T) {
 	}{
 		{
 			name:     "Simple binary name",
-			args:     []string{"claude-clean"},
-			expected: "claude-clean",
+			args:     []string{"cclean"},
+			expected: "cclean",
 		},
 		{
 			name:     "Binary with absolute path",
-			args:     []string{"/usr/local/bin/claude-clean"},
-			expected: "claude-clean",
+			args:     []string{"/usr/local/bin/cclean"},
+			expected: "cclean",
 		},
 		{
 			name:     "Binary with relative path",
-			args:     []string{"./bin/claude-clean"},
-			expected: "claude-clean",
+			args:     []string{"./bin/cclean"},
+			expected: "cclean",
 		},
 		{
 			name:     "Binary with nested path",
-			args:     []string{"/home/user/go/bin/claude-clean"},
-			expected: "claude-clean",
+			args:     []string{"/home/user/go/bin/cclean"},
+			expected: "cclean",
 		},
 		{
 			name:     "Binary name with extension",
-			args:     []string{"/home/user/go/bin/claude-clean.exe"},
-			expected: "claude-clean.exe",
+			args:     []string{"/home/user/go/bin/cclean.exe"},
+			expected: "cclean.exe",
 		},
 	}
 
