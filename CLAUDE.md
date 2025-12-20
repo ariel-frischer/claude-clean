@@ -26,26 +26,41 @@ go test -v -run TestFunctionName ./...
 
 ## Architecture
 
-The codebase follows standard Go project layout:
+The codebase follows standard Go project layout with public packages:
 
 ```
 claude-clean/
 ├── cmd/cclean/           # Application entry point
 │   └── main.go           # CLI parsing, input routing
-├── internal/             # Private application packages
-│   ├── parser/           # JSONL parsing and types
-│   │   ├── parser.go     # StripSystemReminders, constants
-│   │   ├── types.go      # StreamMessage, ContentBlock, Usage
-│   │   └── parser_test.go
-│   └── display/          # Output formatting
-│       ├── display.go    # Common utilities, color definitions, Config
-│       ├── default.go    # Default style (box-drawing)
-│       ├── compact.go    # Single-line summaries
-│       ├── minimal.go    # No box-drawing
-│       ├── plain.go      # No colors
-│       └── display_test.go
+├── parser/               # Public: JSONL parsing and types
+│   ├── parser.go         # StripSystemReminders, constants
+│   ├── types.go          # StreamMessage, ContentBlock, Usage
+│   └── parser_test.go
+├── display/              # Public: Output formatting
+│   ├── display.go        # Common utilities, color definitions, Config
+│   ├── default.go        # Default style (box-drawing)
+│   ├── compact.go        # Single-line summaries
+│   ├── minimal.go        # No box-drawing
+│   ├── plain.go          # No colors
+│   └── display_test.go
 ├── mocks/                # Test data
 └── bin/                  # Build output
+```
+
+## Using as a Library
+
+Other Go modules can import the parser and display packages:
+
+```go
+import (
+    "github.com/ariel-frischer/claude-clean/parser"
+    "github.com/ariel-frischer/claude-clean/display"
+)
+
+// Use types
+msg := parser.StreamMessage{...}
+cfg := &display.Config{Style: display.StyleDefault}
+display.DisplayMessage(&msg, 1, cfg)
 ```
 
 **cmd/cclean/main.go** - Application entry point:
