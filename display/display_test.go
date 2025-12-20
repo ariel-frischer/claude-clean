@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ariel-frischer/claude-clean/internal/parser"
+	"github.com/ariel-frischer/claude-clean/parser"
 	"github.com/fatih/color"
 )
 

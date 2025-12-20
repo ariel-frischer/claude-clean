@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ariel-frischer/claude-clean/internal/parser"
+	"github.com/ariel-frischer/claude-clean/parser"
 )
 
 func displayMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Config) {
