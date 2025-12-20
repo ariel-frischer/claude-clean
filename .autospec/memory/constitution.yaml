@@ -1,196 +1,171 @@
 constitution:
-  project_name: "Claude Clean (cclean)"
+  project_name: "Claude Clean"
   version: "1.0.0"
-  ratified: "2025-12-14"
-  last_amended: "2025-12-14"
+  ratified: "2025-12-20"
+  last_amended: "2025-12-20"
 
 preamble: |
-  Claude Clean is a terminal parser that transforms Claude Code's raw stream-json output
-  into beautiful, human-readable terminal output. This constitution establishes the
-  quality standards and development practices that ensure reliable, maintainable code.
+  Claude Clean (cclean) is a terminal parser that transforms Claude Code's raw stream-json
+  output into beautiful, human-readable terminal output. These principles ensure the tool
+  remains reliable, maintainable, and provides a consistent user experience across all
+  output styles and input sources.
 
 principles:
   - name: "Format Before Commit"
     id: "PRIN-001"
-    category: "process"
+    category: "quality"
     priority: "NON-NEGOTIABLE"
     description: |
       All Go code must be formatted with gofmt before committing.
-      CI enforces this with format checks that fail the build.
-    rationale: "Ensures consistent code style across all contributions"
+      Unformatted code will cause CI pipeline failures.
+    rationale: "Ensures consistent code style across the codebase and prevents CI failures"
     enforcement:
       - mechanism: "CI pipeline"
-        description: "GitHub Actions fails build if gofmt -l finds unformatted code"
+        description: "GitHub Actions format check fails if code is not formatted"
       - mechanism: "Makefile target"
-        description: "make fmt provides easy formatting before commits"
+        description: "make fmt formats all Go code; make all runs fmt before build"
     exceptions: []
 
-  - name: "Static Analysis Clean"
+  - name: "Static Analysis Required"
     id: "PRIN-002"
+    category: "quality"
+    priority: "MUST"
+    description: |
+      All code must pass go vet static analysis without warnings.
+      Static analysis catches common errors before they reach production.
+    rationale: "Catches bugs and issues early in development cycle"
+    enforcement:
+      - mechanism: "CI pipeline"
+        description: "GitHub Actions runs go vet on all pushes and PRs"
+      - mechanism: "Makefile target"
+        description: "make vet runs static analysis; make all includes vet"
+    exceptions:
+      - "Third-party generated code"
+
+  - name: "Tests Must Pass"
+    id: "PRIN-003"
     category: "quality"
     priority: "NON-NEGOTIABLE"
     description: |
-      All code must pass go vet without warnings.
-      Static analysis catches common errors and anti-patterns.
-    rationale: "Catches bugs early before they reach production"
+      All tests must pass before merging to main branch.
+      Tests are run with race detection enabled in CI.
+    rationale: "Ensures code correctness and prevents regressions"
     enforcement:
       - mechanism: "CI pipeline"
-        description: "GitHub Actions runs go vet ./... and fails on issues"
-      - mechanism: "Makefile target"
-        description: "make vet runs analysis locally"
+        description: "GitHub Actions runs go test -v -race on all pushes"
+      - mechanism: "Release workflow"
+        description: "Release workflow runs tests before building binaries"
     exceptions: []
 
-  - name: "Test Coverage for Core Functions"
-    id: "PRIN-003"
-    category: "quality"
-    priority: "MUST"
-    description: |
-      Core parsing and display functions must have test coverage.
-      Tests are organized by output style (default, minimal, plain).
-    rationale: "Prevents regressions in critical parsing logic"
-    enforcement:
-      - mechanism: "CI pipeline"
-        description: "GitHub Actions runs tests with race detection and coverage reporting"
-      - mechanism: "Makefile target"
-        description: "make test runs go test -v ./..."
-    exceptions:
-      - "Trivial helper functions with obvious behavior"
-      - "Display functions that only format output"
-
-  - name: "Single Package Structure"
+  - name: "Standard Go Project Layout"
     id: "PRIN-004"
     category: "architecture"
-    priority: "SHOULD"
-    description: |
-      The codebase uses a single-package architecture for simplicity.
-      All code resides in the main package with clear file organization.
-    rationale: "Maintains simplicity for a focused CLI tool"
-    enforcement:
-      - mechanism: "Code review"
-        description: "Reviewers check that new code fits existing structure"
-    exceptions:
-      - "Test utilities may be placed in separate test files"
-      - "Future growth may warrant package extraction"
-
-  - name: "Pipeline Architecture"
-    id: "PRIN-005"
-    category: "architecture"
     priority: "MUST"
     description: |
-      Message processing follows the established pipeline:
-      1. Input routing (file, stdin, or live Claude execution)
-      2. JSONL parsing into StreamMessage structs
-      3. Duplicate detection
-      4. Display routing to style-specific formatters
-    rationale: "Ensures predictable data flow and easy debugging"
+      Follow standard Go project layout conventions:
+      - cmd/ for application entry points
+      - Public packages (parser/, display/) at top level for library use
+      - Internal packages for non-exported code
+      - mocks/ for test data
+    rationale: "Enables use as both CLI tool and importable library"
     enforcement:
       - mechanism: "Code review"
-        description: "New features must integrate with existing pipeline stages"
+        description: "Reviewers verify new code follows established structure"
+    exceptions:
+      - "Scripts and configuration files in project root"
+
+  - name: "Semantic Versioning"
+    id: "PRIN-005"
+    category: "process"
+    priority: "MUST"
+    description: |
+      All releases must follow semantic versioning (vMAJOR.MINOR.PATCH).
+      Version bumps are managed through Makefile targets (make patch/minor/major).
+    rationale: "Provides predictable versioning for users and integrations"
+    enforcement:
+      - mechanism: "Release workflow"
+        description: "Tags trigger automated releases via GitHub Actions"
+      - mechanism: "Makefile targets"
+        description: "patch/minor/major targets enforce proper version increments"
     exceptions: []
 
-  - name: "Four Output Style Variants"
+  - name: "Multi-Platform Support"
     id: "PRIN-006"
     category: "architecture"
     priority: "MUST"
     description: |
-      Each message type must have display functions for all four styles:
-      default, compact, minimal, and plain. New message types require
-      implementing all four variants.
-    rationale: "Ensures consistent user experience across all output modes"
+      Releases must include binaries for all supported platforms:
+      - Linux (amd64, arm64)
+      - macOS (amd64, arm64)
+      - Windows (amd64)
+    rationale: "Ensures broad user accessibility"
     enforcement:
-      - mechanism: "Code review"
-        description: "New message types must include all four style implementations"
-      - mechanism: "Test coverage"
-        description: "Style-specific tests verify each variant"
+      - mechanism: "Release workflow"
+        description: "GitHub Actions builds and uploads all platform binaries"
+      - mechanism: "Checksum verification"
+        description: "SHA256SUMS file generated for all release artifacts"
     exceptions: []
 
-  - name: "Large Output Handling"
+  - name: "Stream Processing Performance"
     id: "PRIN-007"
     category: "quality"
-    priority: "MUST"
-    description: |
-      Large outputs must be handled gracefully:
-      - 10MB max buffer for handling large outputs
-      - Show first 20 + last 20 lines with middle summary for truncation
-      - System reminder stripping in non-verbose mode
-    rationale: "Prevents memory issues and maintains readable output"
-    enforcement:
-      - mechanism: "Code implementation"
-        description: "Buffer limits and truncation logic in main.go"
-    exceptions: []
-
-  - name: "Minimal Dependencies"
-    id: "PRIN-008"
-    category: "architecture"
     priority: "SHOULD"
     description: |
-      Keep external dependencies minimal. Current dependencies:
-      - github.com/fatih/color for terminal colors
-      - golang.org/x/term for terminal detection
-    rationale: "Reduces attack surface and simplifies maintenance"
+      The tool must efficiently process streaming input in real-time.
+      Large outputs (>10MB buffer) should be handled gracefully with truncation.
+    rationale: "Maintains responsive user experience with live streaming data"
     enforcement:
+      - mechanism: "Code constants"
+        description: "MaxBufferCapacity constant (10MB) enforces limits"
       - mechanism: "Code review"
-        description: "New dependencies require justification"
+        description: "Reviewers verify streaming performance considerations"
     exceptions:
-      - "Standard library packages are always acceptable"
+      - "File-based processing may have different characteristics"
 
-  - name: "Cross-Platform Compatibility"
-    id: "PRIN-009"
-    category: "quality"
+  - name: "Output Style Consistency"
+    id: "PRIN-008"
+    category: "architecture"
     priority: "MUST"
     description: |
-      The binary must work on Linux (amd64, arm64), macOS (Intel, Apple Silicon),
-      and Windows. Color output must degrade gracefully on unsupported terminals.
-    rationale: "Supports Claude Code users on all major platforms"
+      Each output style (default, compact, minimal, plain) must provide
+      consistent formatting for all message types (system, assistant, tool, result).
+    rationale: "Ensures predictable output regardless of chosen style"
     enforcement:
-      - mechanism: "Release process"
-        description: "GoReleaser builds for all target platforms"
-      - mechanism: "Color library"
-        description: "fatih/color handles platform differences"
-    exceptions: []
-
-  - name: "Semantic Versioning"
-    id: "PRIN-010"
-    category: "governance"
-    priority: "MUST"
-    description: |
-      Releases follow semantic versioning (vMAJOR.MINOR.PATCH).
-      - MAJOR: Breaking changes to output format or CLI interface
-      - MINOR: New features, output styles, or message type support
-      - PATCH: Bug fixes and performance improvements
-    rationale: "Allows users to understand impact of updates"
-    enforcement:
-      - mechanism: "Makefile targets"
-        description: "make patch/minor/major auto-bump versions"
-      - mechanism: "Git tags"
-        description: "GoReleaser triggered by version tags"
+      - mechanism: "Code structure"
+        description: "Each style has its own file with complete message type coverage"
+      - mechanism: "Testing"
+        description: "Display tests verify style consistency"
     exceptions: []
 
 sections:
   - name: "Code Quality"
     content: |
-      All code must pass gofmt formatting and go vet analysis.
-      Tests run with race detection enabled (-race flag).
-      Coverage reports uploaded to Codecov for visibility.
+      All Go code must be formatted with gofmt.
+      All code must pass go vet without warnings.
+      Tests must pass before merging.
+      Race conditions must be checked (go test -race).
+      Dependencies must be verified (go mod verify).
 
   - name: "Development Workflow"
     content: |
-      Use 'make all' (or 'make a') before commits to format, vet, and build.
-      Run 'make test' (or 'make t') to verify changes don't break tests.
-      Use 'make run' (or 'make r') to test with sample data from mocks/.
+      Use 'make all' before committing to run fmt, vet, and build.
+      Use 'make test' to run the test suite.
+      Use 'make run' to test with sample data from mocks/.
+      Single-letter Makefile shortcuts available (b/t/f/v/a).
 
   - name: "Release Process"
     content: |
-      Releases are automated via GoReleaser and GitHub Actions.
-      Use 'make patch', 'make minor', or 'make major' for version bumps.
-      The release workflow builds binaries for all platforms and creates GitHub releases.
+      Releases are triggered by pushing version tags (v*).
+      Use 'make patch/minor/major' for version bumps.
+      All releases include multi-platform binaries and checksums.
+      Release notes are auto-generated from commits.
 
-  - name: "Testing Strategy"
+  - name: "Documentation"
     content: |
-      Test files are organized by output style.
-      Core function tests in main_test.go.
-      Style-specific display tests in display_*_test.go files.
-      Sample test data provided in mocks/ directory.
+      CLAUDE.md provides development guidance for AI assistants.
+      README.md provides user-facing documentation.
+      Additional docs in docs/ directory (USAGE, INSTALL, DEVELOPMENT, etc.).
+      Inline code comments where logic is not self-evident.
 
 governance:
   amendment_process:
@@ -219,8 +194,8 @@ governance:
 
   rules:
     - "Changes require review by maintainer"
-    - "Breaking changes to CLI interface require discussion"
-    - "New output styles must implement all message type variants"
+    - "Breaking changes require explicit discussion"
+    - "CI pipeline changes must maintain existing quality gates"
 
 sync_impact:
   version_change: "0.0.0 -> 1.0.0"
@@ -229,15 +204,14 @@ sync_impact:
     - "Code Quality"
     - "Development Workflow"
     - "Release Process"
-    - "Testing Strategy"
+    - "Documentation"
   removed_sections: []
   templates_requiring_updates: []
-  follow_up_todos:
-    - "Consider removing .specify/memory/ directory after migration"
+  follow_up_todos: []
 
 _meta:
   version: "1.0.0"
   generator: "autospec"
-  generator_version: "1.0.0"
-  created: "2025-12-14T00:00:00Z"
+  generator_version: "v0.5.0"
+  created: "2025-12-20T17:33:59Z"
   artifact_type: "constitution"
