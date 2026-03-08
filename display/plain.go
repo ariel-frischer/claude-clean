@@ -25,7 +25,7 @@ func displaySystemMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Conf
 	if msg.Subtype != "" {
 		fmt.Printf(" [%s]", msg.Subtype)
 	}
-	fmt.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	fmt.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if msg.CWD != "" {
 		fmt.Printf("  Working Directory: %s\n", msg.CWD)
@@ -64,7 +64,7 @@ func displayAssistantMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *C
 
 	// Display text blocks
 	if len(textBlocks) > 0 {
-		fmt.Printf("ASSISTANT%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		fmt.Printf("ASSISTANT%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		for _, text := range textBlocks {
 			fmt.Printf("  %s\n", text)
@@ -90,7 +90,7 @@ func displayAssistantMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *C
 }
 
 func displayToolUsePlain(tool *parser.ContentBlock, lineNum int, cfg *Config) {
-	fmt.Printf("TOOL: %s%s\n", tool.Name, FormatLineNum(lineNum, cfg.ShowLineNum))
+	fmt.Printf("TOOL: %s%s%s\n", tool.Name, FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if cfg.Verbose {
 		fmt.Printf("  ID: %s\n", tool.ID)
@@ -139,7 +139,7 @@ func displayUserMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Config
 
 func displayToolResultPlain(block *parser.ContentBlock, lineNum int, cfg *Config) {
 	if block.IsError {
-		fmt.Printf("TOOL RESULT ERROR%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		fmt.Printf("TOOL RESULT ERROR%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		if cfg.Verbose {
 			fmt.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -160,7 +160,7 @@ func displayToolResultPlain(block *parser.ContentBlock, lineNum int, cfg *Config
 
 		fmt.Printf("  %s\n", contentStr)
 	} else {
-		fmt.Printf("TOOL RESULT%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		fmt.Printf("TOOL RESULT%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		if cfg.Verbose {
 			fmt.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -207,9 +207,9 @@ func displayToolResultPlain(block *parser.ContentBlock, lineNum int, cfg *Config
 
 func displayResultMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	if msg.IsError {
-		fmt.Printf("RESULT: ERROR%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		fmt.Printf("RESULT: ERROR%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 	} else {
-		fmt.Printf("RESULT: SUCCESS%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		fmt.Printf("RESULT: SUCCESS%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 	}
 
 	if msg.NumTurns > 0 {
