@@ -11,11 +11,15 @@
 
 ## ⚡ Quick Start
 
-```bash
-# Install (one command!)
-curl -fsSL https://raw.githubusercontent.com/ariel-frischer/claude-clean/main/install.sh | sh
+Install:
 
-# Use it
+```bash
+curl -fsSL https://raw.githubusercontent.com/ariel-frischer/claude-clean/main/install.sh | sh
+```
+
+Use it:
+
+```bash
 claude -p "your prompt" --verbose --output-format stream-json | cclean
 ```
 
