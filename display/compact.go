@@ -25,7 +25,7 @@ func displaySystemMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Co
 	if msg.Subtype != "" {
 		Cyan.Printf("[%s]", msg.Subtype)
 	}
-	Gray.Printf("%s", FormatLineNumCompact(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 	if msg.Model != "" {
 		Cyan.Printf(" %s", msg.Model)
 	}
@@ -45,7 +45,7 @@ func displayAssistantMessageCompact(msg *parser.StreamMessage, lineNum int, cfg 
 		case "text":
 			if block.Text != "" {
 				BoldGreen.Print("AST")
-				Gray.Printf("%s ", FormatLineNumCompact(lineNum, cfg.ShowLineNum))
+				Gray.Printf("%s%s ", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 				// Truncate long text to single line
 				text := strings.ReplaceAll(block.Text, "\n", " ")
 				if len(text) > 100 {
@@ -62,7 +62,7 @@ func displayAssistantMessageCompact(msg *parser.StreamMessage, lineNum int, cfg 
 
 func displayToolUseCompact(tool *parser.ContentBlock, lineNum int, cfg *Config) {
 	BoldYellow.Printf("TOOL")
-	Gray.Printf("%s ", FormatLineNumCompact(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s ", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 	Yellow.Printf("%s", tool.Name)
 
 	// Show key inputs in compact form
@@ -111,7 +111,7 @@ func displayToolResultCompact(block *parser.ContentBlock, lineNum int, cfg *Conf
 	} else {
 		BoldMagenta.Print("RES")
 	}
-	Gray.Printf("%s ", FormatLineNumCompact(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s ", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 
 	contentStr := ""
 	switch v := block.Content.(type) {
@@ -143,7 +143,7 @@ func displayResultMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Co
 	} else {
 		BoldBlue.Print("OK")
 	}
-	Gray.Printf("%s", FormatLineNumCompact(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 
 	if msg.NumTurns > 0 {
 		Blue.Printf(" turns=%d", msg.NumTurns)

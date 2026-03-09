@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/ariel-frischer/claude-clean/display"
 	"github.com/ariel-frischer/claude-clean/parser"
@@ -19,11 +20,12 @@ var Version = "dev"
 
 // Command line flags
 var (
-	verbose     = flag.Bool("V", false, "Show verbose output (usage stats, tool IDs)")
-	showVersion = flag.Bool("v", false, "Show version")
-	styleFlag   = flag.String("s", "default", "Output style: default, compact, minimal, plain")
-	showLineNum = flag.Bool("n", false, "Show line numbers")
-	uninstall   = flag.Bool("uninstall", false, "Uninstall cclean from the system")
+	verbose        = flag.Bool("V", false, "Show verbose output (usage stats, tool IDs)")
+	showVersion    = flag.Bool("v", false, "Show version")
+	styleFlag      = flag.String("s", "default", "Output style: default, compact, minimal, plain")
+	showLineNum    = flag.Bool("n", false, "Show line numbers")
+	showTimestamps = flag.Bool("t", false, "Show elapsed time for each message")
+	uninstall      = flag.Bool("uninstall", false, "Uninstall cclean from the system")
 )
 
 func main() {
@@ -77,9 +79,10 @@ func main() {
 	}
 
 	cfg := &display.Config{
-		Style:       style,
-		Verbose:     *verbose,
-		ShowLineNum: *showLineNum,
+		Style:          style,
+		Verbose:        *verbose,
+		ShowLineNum:    *showLineNum,
+		ShowTimestamps: *showTimestamps,
 	}
 
 	args := flag.Args()
@@ -130,6 +133,10 @@ func processFile(filename string, cfg *display.Config) {
 }
 
 func processStream(r *os.File, cfg *display.Config) {
+	if cfg.ShowTimestamps {
+		cfg.StartTime = time.Now()
+	}
+
 	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 0, parser.MaxBufferCapacity), parser.MaxBufferCapacity)
 

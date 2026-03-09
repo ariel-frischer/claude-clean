@@ -3,6 +3,7 @@ package display
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ariel-frischer/claude-clean/parser"
 	"github.com/fatih/color"
@@ -20,9 +21,11 @@ const (
 
 // Config holds display configuration options
 type Config struct {
-	Style       OutputStyle
-	Verbose     bool
-	ShowLineNum bool
+	Style          OutputStyle
+	Verbose        bool
+	ShowLineNum    bool
+	ShowTimestamps bool
+	StartTime      time.Time
 }
 
 // Color definitions
@@ -70,6 +73,21 @@ func FormatLineNumCompact(lineNum int, showLineNum bool) string {
 		return fmt.Sprintf(" L%d", lineNum)
 	}
 	return ""
+}
+
+// FormatElapsed returns the elapsed time since cfg.StartTime if ShowTimestamps is enabled
+func FormatElapsed(cfg *Config) string {
+	if !cfg.ShowTimestamps || cfg.StartTime.IsZero() {
+		return ""
+	}
+	d := time.Since(cfg.StartTime)
+	secs := d.Seconds()
+	if secs < 60 {
+		return fmt.Sprintf(" +%.1fs", secs)
+	}
+	mins := int(secs) / 60
+	remSecs := int(secs) % 60
+	return fmt.Sprintf(" +%dm%ds", mins, remSecs)
 }
 
 // DisplayUsage shows token usage statistics
