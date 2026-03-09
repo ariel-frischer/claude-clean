@@ -31,12 +31,41 @@ Claude Code's `stream-json` output is **unreadable**:
 {"type":"assistant","message":{"content":[{"type":"text","text":"Hello!"}],"usage":{"input_tokens":150,"output_tokens":45}}}
 ```
 
-With `cclean`, you get **beautiful output**:
+With `cclean`, you get **beautiful output** in multiple styles:
 
+**Default** (`-s default`) — boxed with box-drawing characters:
 ```
 ┌─ ASSISTANT
-│ Hello!
+│ Hello! I can help you with that.
 └─
+```
+
+**Compact** (`-s compact`) — single-line summaries for quick scanning:
+```
+AST Hello! I can help you with that.
+TOOL[Bash] echo "hello world"
+RES hello world
+```
+
+**Minimal** (`-s minimal`) — clean and readable, no box-drawing:
+```
+ASSISTANT
+  Hello! I can help you with that.
+
+TOOL USE [Bash]
+  echo "hello world"
+```
+
+**Plain** (`-s plain`) — no colors or formatting, ideal for piping/logs:
+```
+ASSISTANT
+  Hello! I can help you with that.
+
+TOOL USE [Bash]
+  echo "hello world"
+
+RESULT
+  hello world
 ```
 
 **Bonus:** Using `-p` with `--output-format stream-json` bypasses Claude's interactive UI, avoiding segfault issues some users experience.
