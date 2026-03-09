@@ -35,8 +35,41 @@ With `cclean`, you get **beautiful output** in multiple styles:
 
 **Default** (`-s default`) — boxed with box-drawing characters:
 ```
+┌─ SYSTEM [init]
+│ Model: claude-sonnet-4-20250514
+│ Claude Code: v1.0.12
+│ Tools: 12 available
+└─
+
 ┌─ ASSISTANT
-│ Hello! I can help you with that.
+│ I'll check the project structure first.
+└─
+
+┌─ TOOL: Bash
+│ Input:
+│   command: ls src/
+└─
+
+┌─ TOOL RESULT
+│ index.ts
+│ utils.ts
+│ config.ts
+└─
+
+┌─ ASSISTANT
+│ Found the source files. Let me read the config.
+└─
+
+┌─ TOOL: Read
+│ Input:
+│   file_path: src/config.ts
+└─
+
+┌─ RESULT: SUCCESS
+│ Turns: 4
+│ Duration: 12.35s (API: 8.21s)
+│ Cost: $0.0142
+│ Tokens: in=1250 out=380
 └─
 ```
 
@@ -134,6 +167,7 @@ cclean -s compact logs.jsonl  # Try different styles!
 | `-s, --style` | Output style (default/compact/minimal/plain) |
 | `-v, --verbose` | Show system reminders |
 | `-l, --line-numbers` | Show source line numbers |
+| `-t` | Show elapsed time per message |
 | `-V, --usage` | Show token usage stats |
 
 ---
