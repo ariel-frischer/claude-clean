@@ -30,3 +30,4 @@ vendor/
 # Go workspace file
 go.work
 .autospec/
+.grepai/

@@ -25,6 +25,14 @@ jobs:
     - name: Run tests
       run: go test -v ./...
 
+    - name: Install chlog
+      run: go install github.com/ariel-frischer/chlog@latest
+
+    - name: Extract release notes
+      run: |
+        VERSION="${GITHUB_REF_NAME#v}"
+        chlog extract "$VERSION" > /tmp/release-notes.md
+
     - name: Build binaries
       run: |
         VERSION=${GITHUB_REF_NAME}
@@ -58,6 +66,6 @@ jobs:
           cclean-darwin-arm64
           cclean-windows-amd64.exe
           SHA256SUMS
-        generate_release_notes: true
+        body_path: /tmp/release-notes.md
         draft: false
         prerelease: false

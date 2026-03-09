@@ -1,0 +1,67 @@
+project: claude-clean
+versions:
+    unreleased:
+        added:
+            - Watch mode for monitoring Claude log files in real-time
+            - Project constitution and worktree setup script
+    0.2.0:
+        date: "2025-12-20"
+        added:
+            - Multiple display styles (compact, default, minimal, plain)
+            - Message parsing with system reminder stripping
+            - Unit tests for parser and display functions
+        changed:
+            - Restructured into public parser/ and display/ packages for library use
+            - Simplified README manual download instructions
+        fixed:
+            - Release workflow build output paths
+            - Version ldflags case (Version not version)
+            - goreleaser configuration and CI workflow
+        removed:
+            - Obsolete autospec scripts and project restructuring specs
+    0.1.4:
+        date: "2025-12-15"
+        fixed:
+            - Use browser_download_url from API instead of constructing URL
+            - Download tar.gz archives instead of standalone binaries
+    0.1.3:
+        date: "2025-12-15"
+        added:
+            - Uninstall target in Makefile
+            - Uninstall instructions in documentation
+        changed:
+            - Simplified installation by integrating steps into Makefile
+        fixed:
+            - goreleaser archives syntax and configuration
+    0.1.2:
+        date: "2025-12-14"
+        added:
+            - Compact, default, minimal, and plain display styles
+            - Display function tests
+        changed:
+            - Renamed binary from claude-clean to cclean
+            - Updated all documentation references for new binary name
+    0.1.1:
+        date: "2025-12-14"
+        added:
+            - Git hooks (pre-merge-commit, pre-rebase, post-rewrite)
+            - CONTRIBUTING.md and development documentation
+        changed:
+            - Formatting improvements for command-line flags
+        removed:
+            - Outdated CONTRIBUTING.md and setup-hooks.sh
+    0.1.0:
+        date: "2025-12-14"
+        added:
+            - Initial release of claude-clean (cclean)
+            - JSONL stream parser for Claude Code stream-json output
+            - Multiple output styles (default, compact, minimal, plain)
+            - System reminder stripping from assistant messages
+            - Duplicate assistant message detection
+            - 10MB max buffer for large outputs
+            - Large line handling with graceful exit
+            - Line number display option
+            - Version flag
+            - goreleaser configuration for cross-platform builds
+            - One-line installer script
+            - OAuth support for Claude prompts
