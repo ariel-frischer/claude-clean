@@ -1,9 +1,12 @@
 project: claude-clean
 versions:
-    unreleased:
+    unreleased: {}
+    0.2.1:
+        date: "2026-03-08"
         added:
-            - Watch mode for monitoring Claude log files in real-time
-            - Project constitution and worktree setup script
+            - Elapsed timestamps per message with -t flag
+        changed:
+            - Updated README with output style examples and new command options
     0.2.0:
         date: "2025-12-20"
         added:
