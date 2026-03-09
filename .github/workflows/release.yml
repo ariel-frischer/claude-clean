@@ -25,10 +25,18 @@ jobs:
     - name: Run tests
       run: go test -v ./...
 
+    - name: Install chlog
+      run: go install github.com/ariel-frischer/chlog@latest
+
+    - name: Extract release notes
+      run: |
+        VERSION="${GITHUB_REF_NAME#v}"
+        chlog extract "$VERSION" > /tmp/release-notes.md
+
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
       with:
         version: '~> v2'
-        args: release --clean
+        args: release --clean --release-notes /tmp/release-notes.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
