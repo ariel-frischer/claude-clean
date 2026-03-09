@@ -1,6 +1,6 @@
 # Binaries
 bin/
-cclean
+/cclean
 cclean-*
 release/
 dist/
