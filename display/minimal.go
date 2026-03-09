@@ -25,7 +25,7 @@ func displaySystemMessageMinimal(msg *parser.StreamMessage, lineNum int, cfg *Co
 	if msg.Subtype != "" {
 		Cyan.Printf(" [%s]", msg.Subtype)
 	}
-	Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if msg.CWD != "" {
 		Cyan.Printf("  Working Directory: %s\n", msg.CWD)
@@ -65,7 +65,7 @@ func displayAssistantMessageMinimal(msg *parser.StreamMessage, lineNum int, cfg 
 	// Display text blocks
 	if len(textBlocks) > 0 {
 		BoldGreen.Printf("ASSISTANT")
-		Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		for _, text := range textBlocks {
 			White.Printf("  %s\n", text)
@@ -92,7 +92,7 @@ func displayAssistantMessageMinimal(msg *parser.StreamMessage, lineNum int, cfg 
 
 func displayToolUseMinimal(tool *parser.ContentBlock, lineNum int, cfg *Config) {
 	BoldYellow.Printf("TOOL: %s", tool.Name)
-	Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if cfg.Verbose {
 		Yellow.Printf("  ID: %s\n", tool.ID)
@@ -142,7 +142,7 @@ func displayUserMessageMinimal(msg *parser.StreamMessage, lineNum int, cfg *Conf
 func displayToolResultMinimal(block *parser.ContentBlock, lineNum int, cfg *Config) {
 	if block.IsError {
 		BoldRed.Printf("TOOL RESULT ERROR")
-		Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		if cfg.Verbose {
 			Red.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -164,7 +164,7 @@ func displayToolResultMinimal(block *parser.ContentBlock, lineNum int, cfg *Conf
 		White.Printf("  %s\n", contentStr)
 	} else {
 		BoldMagenta.Printf("TOOL RESULT")
-		Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		if cfg.Verbose {
 			Gray.Printf("  Tool ID: %s\n", block.ToolUseID)
@@ -215,7 +215,7 @@ func displayResultMessageMinimal(msg *parser.StreamMessage, lineNum int, cfg *Co
 	} else {
 		BoldBlue.Printf("RESULT: SUCCESS")
 	}
-	Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if msg.NumTurns > 0 {
 		Blue.Printf("  Turns: %d\n", msg.NumTurns)

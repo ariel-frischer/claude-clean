@@ -28,7 +28,7 @@ func displaySystemMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	if msg.Subtype != "" {
 		Cyan.Printf(" [%s]", msg.Subtype)
 	}
-	Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if msg.CWD != "" {
 		Cyan.Printf("│ Working Directory: %s\n", msg.CWD)
@@ -75,7 +75,7 @@ func displayAssistantMessage(msg *parser.StreamMessage, lineNum int, cfg *Config
 	if len(textBlocks) > 0 {
 		BoldGreen.Print("┌─ ")
 		BoldGreen.Print("ASSISTANT")
-		Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		for _, text := range textBlocks {
 			Green.Print("│ ")
@@ -97,7 +97,7 @@ func displayAssistantMessage(msg *parser.StreamMessage, lineNum int, cfg *Config
 func displayToolUse(tool *parser.ContentBlock, lineNum int, cfg *Config) {
 	BoldYellow.Print("┌─ ")
 	BoldYellow.Printf("TOOL: %s", tool.Name)
-	Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	if cfg.Verbose {
 		Yellow.Printf("│ ID: %s\n", tool.ID)
@@ -158,7 +158,7 @@ func displayToolResult(block *parser.ContentBlock, lineNum int, cfg *Config) {
 	if block.IsError {
 		BoldRed.Print("┌─ ")
 		BoldRed.Print("TOOL RESULT ERROR")
-		Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		if cfg.Verbose {
 			Red.Printf("│ Tool ID: %s\n", block.ToolUseID)
@@ -183,7 +183,7 @@ func displayToolResult(block *parser.ContentBlock, lineNum int, cfg *Config) {
 	} else {
 		BoldMagenta.Print("┌─ ")
 		BoldMagenta.Print("TOOL RESULT")
-		Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		if cfg.Verbose {
 			Gray.Printf("│ Tool ID: %s\n", block.ToolUseID)
@@ -247,7 +247,7 @@ func displayResultMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 		BoldBlue.Print("┌─ ")
 		BoldBlue.Print("RESULT: SUCCESS")
 	}
-	Gray.Printf("%s\n", FormatLineNum(lineNum, cfg.ShowLineNum))
+	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 	// Show summary stats
 	if msg.NumTurns > 0 {
