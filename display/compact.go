@@ -151,7 +151,7 @@ func displayResultMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Co
 	if msg.DurationMS > 0 {
 		Blue.Printf(" %.2fs", float64(msg.DurationMS)/1000.0)
 	}
-	if msg.TotalCostUSD > 0 {
+	if cfg.Verbose && msg.TotalCostUSD > 0 {
 		Blue.Printf(" $%.4f", msg.TotalCostUSD)
 	}
 	if msg.Usage != nil {

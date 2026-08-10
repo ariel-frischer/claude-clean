@@ -260,7 +260,7 @@ func displayResultMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 		}
 		Blue.Println()
 	}
-	if msg.TotalCostUSD > 0 {
+	if cfg.Verbose && msg.TotalCostUSD > 0 {
 		Blue.Printf("│ Cost: $%.4f\n", msg.TotalCostUSD)
 	}
 
