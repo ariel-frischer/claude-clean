@@ -23,7 +23,7 @@ func displayMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 func displaySystemMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	fmt.Printf("SYSTEM")
 	if msg.Subtype != "" {
-		fmt.Printf(" [%s]%s", msg.Subtype, hookSummary(msg))
+		fmt.Printf(" [%s]%s", msg.Subtype, systemSummary(msg))
 	}
 	fmt.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
@@ -67,7 +67,9 @@ func displayAssistantMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *C
 		fmt.Printf("ASSISTANT%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		for _, text := range textBlocks {
-			fmt.Printf("  %s\n", text)
+			for _, line := range strings.Split(text, "\n") {
+				fmt.Printf("  %s\n", line)
+			}
 		}
 
 		if cfg.Verbose && msg.Message.Usage != nil {
@@ -98,7 +100,8 @@ func displayToolUsePlain(tool *parser.ContentBlock, lineNum int, cfg *Config) {
 
 	if tool.Input != nil {
 		fmt.Println("  Input:")
-		for key, value := range tool.Input {
+		for _, key := range sortedKeys(tool.Input) {
+			value := tool.Input[key]
 			fmt.Printf("    %s: ", key)
 
 			switch v := value.(type) {
@@ -145,20 +148,16 @@ func displayToolResultPlain(block *parser.ContentBlock, lineNum int, cfg *Config
 			fmt.Printf("  Tool ID: %s\n", block.ToolUseID)
 		}
 
-		contentStr := ""
-		switch v := block.Content.(type) {
-		case string:
-			contentStr = v
-		default:
-			contentStr = fmt.Sprintf("%v", v)
-		}
+		contentStr := parser.ToolResultText(block.Content)
 
 		// Strip system reminders in non-verbose mode
 		if !cfg.Verbose {
 			contentStr = parser.StripSystemReminders(contentStr)
 		}
 
-		fmt.Printf("  %s\n", contentStr)
+		for _, line := range strings.Split(contentStr, "\n") {
+			fmt.Printf("  %s\n", line)
+		}
 	} else {
 		fmt.Printf("TOOL RESULT%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
@@ -166,13 +165,7 @@ func displayToolResultPlain(block *parser.ContentBlock, lineNum int, cfg *Config
 			fmt.Printf("  Tool ID: %s\n", block.ToolUseID)
 		}
 
-		contentStr := ""
-		switch v := block.Content.(type) {
-		case string:
-			contentStr = v
-		default:
-			contentStr = fmt.Sprintf("%v", v)
-		}
+		contentStr := parser.ToolResultText(block.Content)
 
 		// Strip system reminders in non-verbose mode
 		if !cfg.Verbose {
@@ -240,7 +233,7 @@ func displayResultMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Conf
 	if cfg.Verbose && msg.ModelUsage != nil && len(msg.ModelUsage) > 0 {
 		fmt.Println()
 		fmt.Println("  Model Usage:")
-		for _, model := range sortedModels(msg.ModelUsage) {
+		for _, model := range sortedKeys(msg.ModelUsage) {
 			usageData := msg.ModelUsage[model]
 			fmt.Printf("    %s:\n", model)
 			if usageMap, ok := usageData.(map[string]interface{}); ok {

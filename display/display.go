@@ -51,7 +51,11 @@ func DisplayMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	if !cfg.Verbose && isRoutineEvent(msg) {
 		return
 	}
-	if msg.Type == "rate_limit_event" {
+	switch msg.Type {
+	case "stream_event":
+		// --include-partial-messages token deltas; the complete assistant message follows
+		return
+	case "rate_limit_event":
 		displayRateLimit(msg, lineNum, cfg)
 		return
 	}
@@ -68,13 +72,19 @@ func DisplayMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 }
 
 // isRoutineEvent reports bookkeeping events that carry no news unless something went wrong:
-// hook start/success notices and rate-limit updates that are still "allowed".
+// hook start/success notices, API status pings, subagent progress ticks, and rate-limit
+// updates that are still "allowed".
 func isRoutineEvent(msg *parser.StreamMessage) bool {
 	switch msg.Type {
 	case "rate_limit_event":
 		return msg.RateLimitInfo == nil || msg.RateLimitInfo.Status == "allowed"
 	case "system":
-		return msg.Subtype == "hook_started" || (msg.Subtype == "hook_response" && msg.Outcome == "success")
+		switch msg.Subtype {
+		case "hook_started", "status", "task_progress", "task_updated":
+			return true
+		case "hook_response":
+			return msg.Outcome == "success"
+		}
 	}
 	return false
 }
@@ -99,27 +109,62 @@ func displayRateLimit(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	Gray.Println(suffix)
 }
 
-// hookSummary describes a hook event for system message headers, e.g.
-// " SessionStart:startup" or " Stop: error (exit 1)". Empty for non-hook messages.
-func hookSummary(msg *parser.StreamMessage) string {
-	if msg.HookName == "" {
-		return ""
+// systemSummary describes hook and subagent events for system message headers, e.g.
+// " SessionStart:startup", " Stop: error (exit 1): boom", or " Run tests (general-purpose)".
+// Empty for other system messages.
+func systemSummary(msg *parser.StreamMessage) string {
+	switch msg.Subtype {
+	case "hook_started", "hook_response":
+		if msg.HookName == "" {
+			return ""
+		}
+		s := " " + msg.HookName
+		if msg.Subtype == "hook_response" && msg.Outcome != "success" {
+			s += fmt.Sprintf(": %s (exit %d)", msg.Outcome, msg.ExitCode)
+			if stderr := firstLine(msg.Stderr); stderr != "" {
+				s += ": " + stderr
+			}
+		}
+		return s
+	case "task_started":
+		s := " " + msg.Description
+		if msg.SubagentType != "" {
+			s += " (" + msg.SubagentType + ")"
+		}
+		return s
+	case "task_notification":
+		s := " " + msg.Status
+		if summary := firstLine(msg.Summary); summary != "" {
+			s += ": " + summary
+		}
+		return s
+	case "status":
+		return " " + msg.Status
 	}
-	s := " " + msg.HookName
-	if msg.Subtype == "hook_response" && msg.Outcome != "success" {
-		s += fmt.Sprintf(": %s (exit %d)", msg.Outcome, msg.ExitCode)
-	}
-	return s
+	return ""
 }
 
-// sortedModels returns modelUsage keys in stable order
-func sortedModels(modelUsage map[string]interface{}) []string {
-	models := make([]string, 0, len(modelUsage))
-	for model := range modelUsage {
-		models = append(models, model)
+// firstLine returns the first non-empty line of s, cut to 100 runes
+func firstLine(s string) string {
+	for _, line := range strings.Split(s, "\n") {
+		if line = strings.TrimSpace(line); line != "" {
+			if r := []rune(line); len(r) > 100 {
+				return string(r[:100]) + "..."
+			}
+			return line
+		}
 	}
-	sort.Strings(models)
-	return models
+	return ""
+}
+
+// sortedKeys returns map keys in stable order so output is deterministic
+func sortedKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // FormatLineNum returns a formatted line number string if showLineNum is enabled

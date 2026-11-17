@@ -3,13 +3,19 @@ versions:
     unreleased:
         fixed:
             - Result summary (turns, duration, cost, tokens) no longer hidden when its text repeats the last assistant message (#1)
+            - Tool results with content blocks (subagent reports, images, loaded tools) shown as text instead of Go map dumps
+            - Multi-line assistant text and tool errors keep the box/indent prefix on every line
         added:
             - Hook events show the hook name; failed hooks and rate-limit rejections always shown
             - Rate-limit events rendered instead of 'Unknown message type'
+            - Subagent task_started/task_notification events show description, type, status and summary
         changed:
             - Successful hook and allowed rate-limit events hidden unless -V
             - Per-model usage in -V sorted by model name
             - Go 1.26 and dependency updates; CI reads Go version from go.mod
+            - stream_event deltas from --include-partial-messages skipped instead of printing 'Unknown message type' per token
+            - status, task_progress and task_updated events hidden unless -V
+            - Tool input fields printed in sorted order
     0.2.1:
         date: 2026-03-08
         added:

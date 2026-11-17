@@ -544,6 +544,11 @@ func TestDisplayMessageRoutineEvents(t *testing.T) {
 		{"hook started verbose", &parser.StreamMessage{Type: "system", Subtype: "hook_started", HookName: "SessionStart:startup"}, true, "[hook_started] SessionStart:startup"},
 		{"rate limit allowed hidden", &parser.StreamMessage{Type: "rate_limit_event", RateLimitInfo: &parser.RateLimitInfo{Status: "allowed"}}, false, ""},
 		{"rate limit rejected shown", &parser.StreamMessage{Type: "rate_limit_event", RateLimitInfo: &parser.RateLimitInfo{Status: "rejected", RateLimitType: "five_hour"}}, false, "RATE LIMIT [rejected] five_hour"},
+		{"status hidden", &parser.StreamMessage{Type: "system", Subtype: "status", Status: "requesting"}, false, ""},
+		{"task progress hidden", &parser.StreamMessage{Type: "system", Subtype: "task_progress"}, false, ""},
+		{"task started shown", &parser.StreamMessage{Type: "system", Subtype: "task_started", Description: "Run tests", SubagentType: "general-purpose"}, false, "[task_started] Run tests (general-purpose)"},
+		{"task notification shown", &parser.StreamMessage{Type: "system", Subtype: "task_notification", Status: "failed", Summary: "boom\nmore"}, false, "[task_notification] failed: boom"},
+		{"stream event hidden even verbose", &parser.StreamMessage{Type: "stream_event"}, true, ""},
 	}
 
 	for _, style := range []OutputStyle{StyleDefault, StyleCompact, StyleMinimal, StylePlain} {

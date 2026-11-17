@@ -18,6 +18,11 @@ type StreamMessage struct {
 	Stderr   string `json:"stderr,omitempty"`
 	// Rate limit event fields
 	RateLimitInfo *RateLimitInfo `json:"rate_limit_info,omitempty"`
+	// Subagent task fields (system task_started/task_notification) and status updates
+	Description  string `json:"description,omitempty"`
+	SubagentType string `json:"subagent_type,omitempty"`
+	Status       string `json:"status,omitempty"`
+	Summary      string `json:"summary,omitempty"`
 	// Result message fields
 	IsError           bool                   `json:"is_error,omitempty"`
 	DurationMS        int                    `json:"duration_ms,omitempty"`

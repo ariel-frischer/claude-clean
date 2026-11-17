@@ -180,12 +180,15 @@ cclean -s compact logs.jsonl  # Try different styles!
 
 | Type | Color | Description |
 |------|-------|-------------|
-| 🔧 **SYSTEM** | Cyan | Init, config, session info |
+| 🔧 **SYSTEM** | Cyan | Init, subagent start/finish, failed hooks (all hooks and status pings with `-V`) |
 | 💬 **ASSISTANT** | Green | Claude's responses |
 | 🛠️ **TOOL** | Yellow | Tool calls (Bash, Read, Write...) |
 | ✅ **RESULT** | Gray | Tool output |
 | ❌ **ERROR** | Red | Tool errors |
 | 📊 **USAGE** | Magenta | Token stats & costs |
+| ⏳ **RATE LIMIT** | Yellow | Rate-limit rejections (all updates with `-V`) |
+
+`--include-partial-messages` token deltas (`stream_event`) are skipped; the complete message follows them.
 
 ---
 

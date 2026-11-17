@@ -120,6 +120,35 @@ End`,
 	}
 }
 
+func TestToolResultText(t *testing.T) {
+	tests := []struct {
+		name    string
+		content interface{}
+		want    string
+	}{
+		{"nil", nil, ""},
+		{"string", "hi", "hi"},
+		{"text blocks joined", []interface{}{
+			map[string]interface{}{"type": "text", "text": "one"},
+			map[string]interface{}{"type": "text", "text": "two"},
+		}, "one\ntwo"},
+		{"image and tool reference", []interface{}{
+			map[string]interface{}{"type": "image", "source": map[string]interface{}{"data": "AAAA"}},
+			map[string]interface{}{"type": "tool_reference", "tool_name": "WebSearch"},
+		}, "[image]\n[loaded tool: WebSearch]"},
+		{"unknown block as JSON", []interface{}{
+			map[string]interface{}{"type": "custom", "x": 1.0},
+		}, `{"type":"custom","x":1}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ToolResultText(tt.content); got != tt.want {
+				t.Errorf("ToolResultText() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestStripSystemRemindersPreservesContent(t *testing.T) {
 	// Test that we don't accidentally remove similar-looking content
 	input := `This is a system message

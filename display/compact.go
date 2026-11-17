@@ -23,7 +23,7 @@ func displayMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Config) 
 func displaySystemMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	BoldCyan.Print("SYS")
 	if msg.Subtype != "" {
-		Cyan.Printf("[%s]%s", msg.Subtype, hookSummary(msg))
+		Cyan.Printf("[%s]%s", msg.Subtype, systemSummary(msg))
 	}
 	Gray.Printf("%s%s", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 	if msg.Model != "" {
@@ -69,7 +69,8 @@ func displayToolUseCompact(tool *parser.ContentBlock, lineNum int, cfg *Config) 
 	if tool.Input != nil {
 		Yellow.Print(" {")
 		first := true
-		for key, value := range tool.Input {
+		for _, key := range sortedKeys(tool.Input) {
+			value := tool.Input[key]
 			if !first {
 				Yellow.Print(", ")
 			}
@@ -113,13 +114,7 @@ func displayToolResultCompact(block *parser.ContentBlock, lineNum int, cfg *Conf
 	}
 	Gray.Printf("%s%s ", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 
-	contentStr := ""
-	switch v := block.Content.(type) {
-	case string:
-		contentStr = v
-	default:
-		contentStr = fmt.Sprintf("%v", v)
-	}
+	contentStr := parser.ToolResultText(block.Content)
 
 	// Strip system reminders in non-verbose mode
 	if !cfg.Verbose {

@@ -1,7 +1,6 @@
 package display
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/ariel-frischer/claude-clean/parser"
@@ -26,7 +25,7 @@ func displaySystemMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	BoldCyan.Print("┌─ ")
 	BoldCyan.Print("SYSTEM")
 	if msg.Subtype != "" {
-		Cyan.Printf(" [%s]%s", msg.Subtype, hookSummary(msg))
+		Cyan.Printf(" [%s]%s", msg.Subtype, systemSummary(msg))
 	}
 	Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
@@ -78,8 +77,10 @@ func displayAssistantMessage(msg *parser.StreamMessage, lineNum int, cfg *Config
 		Gray.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
 		for _, text := range textBlocks {
-			Green.Print("│ ")
-			White.Println(text)
+			for _, line := range strings.Split(text, "\n") {
+				Green.Print("│ ")
+				White.Println(line)
+			}
 		}
 
 		if cfg.Verbose && msg.Message.Usage != nil {
@@ -105,7 +106,8 @@ func displayToolUse(tool *parser.ContentBlock, lineNum int, cfg *Config) {
 
 	if tool.Input != nil {
 		Yellow.Println("│ Input:")
-		for key, value := range tool.Input {
+		for _, key := range sortedKeys(tool.Input) {
+			value := tool.Input[key]
 			// Pretty print the value
 			Yellow.Printf("│   %s: ", key)
 
@@ -164,21 +166,17 @@ func displayToolResult(block *parser.ContentBlock, lineNum int, cfg *Config) {
 			Red.Printf("│ Tool ID: %s\n", block.ToolUseID)
 		}
 
-		contentStr := ""
-		switch v := block.Content.(type) {
-		case string:
-			contentStr = v
-		default:
-			contentStr = fmt.Sprintf("%v", v)
-		}
+		contentStr := parser.ToolResultText(block.Content)
 
 		// Strip system reminders in non-verbose mode
 		if !cfg.Verbose {
 			contentStr = parser.StripSystemReminders(contentStr)
 		}
 
-		Red.Print("│ ")
-		White.Println(contentStr)
+		for _, line := range strings.Split(contentStr, "\n") {
+			Red.Print("│ ")
+			White.Println(line)
+		}
 		Red.Println("└─")
 	} else {
 		BoldMagenta.Print("┌─ ")
@@ -189,13 +187,7 @@ func displayToolResult(block *parser.ContentBlock, lineNum int, cfg *Config) {
 			Gray.Printf("│ Tool ID: %s\n", block.ToolUseID)
 		}
 
-		contentStr := ""
-		switch v := block.Content.(type) {
-		case string:
-			contentStr = v
-		default:
-			contentStr = fmt.Sprintf("%v", v)
-		}
+		contentStr := parser.ToolResultText(block.Content)
 
 		// Strip system reminders in non-verbose mode
 		if !cfg.Verbose {
@@ -282,7 +274,7 @@ func displayResultMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	if cfg.Verbose && msg.ModelUsage != nil && len(msg.ModelUsage) > 0 {
 		Blue.Println("│")
 		Blue.Println("│ Model Usage:")
-		for _, model := range sortedModels(msg.ModelUsage) {
+		for _, model := range sortedKeys(msg.ModelUsage) {
 			usageData := msg.ModelUsage[model]
 			Blue.Printf("│   %s:\n", model)
 			if usageMap, ok := usageData.(map[string]interface{}); ok {
