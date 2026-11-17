@@ -23,7 +23,7 @@ func displayMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Config) 
 func displaySystemMessageCompact(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	BoldCyan.Print("SYS")
 	if msg.Subtype != "" {
-		Cyan.Printf("[%s]", msg.Subtype)
+		Cyan.Printf("[%s]%s", msg.Subtype, hookSummary(msg))
 	}
 	Gray.Printf("%s%s", FormatElapsed(cfg), FormatLineNumCompact(lineNum, cfg.ShowLineNum))
 	if msg.Model != "" {

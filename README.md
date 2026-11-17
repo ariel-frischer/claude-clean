@@ -168,11 +168,11 @@ cclean -s compact logs.jsonl  # Try different styles!
 
 | Flag | Description |
 |------|-------------|
-| `-s, --style` | Output style (default/compact/minimal/plain) |
-| `-v, --verbose` | Show system reminders |
-| `-l, --line-numbers` | Show source line numbers |
+| `-s` | Output style (default/compact/minimal/plain) |
+| `-V` | Verbose: token usage, per-model cost, tool IDs, system reminders, hook and rate-limit events |
+| `-n` | Show source line numbers |
 | `-t` | Show elapsed time per message |
-| `-V, --usage` | Show token usage stats |
+| `-v` | Show version |
 
 ---
 

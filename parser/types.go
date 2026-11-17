@@ -11,6 +11,13 @@ type StreamMessage struct {
 	Tools             []string        `json:"tools,omitempty"`
 	Model             string          `json:"model,omitempty"`
 	ClaudeCodeVersion string          `json:"claude_code_version,omitempty"`
+	// Hook event fields (system hook_started/hook_response)
+	HookName string `json:"hook_name,omitempty"`
+	Outcome  string `json:"outcome,omitempty"`
+	ExitCode int    `json:"exit_code,omitempty"`
+	Stderr   string `json:"stderr,omitempty"`
+	// Rate limit event fields
+	RateLimitInfo *RateLimitInfo `json:"rate_limit_info,omitempty"`
 	// Result message fields
 	IsError           bool                   `json:"is_error,omitempty"`
 	DurationMS        int                    `json:"duration_ms,omitempty"`
@@ -61,4 +68,11 @@ type Usage struct {
 type CacheCreationDetail struct {
 	Ephemeral5mInputTokens int `json:"ephemeral_5m_input_tokens"`
 	Ephemeral1hInputTokens int `json:"ephemeral_1h_input_tokens"`
+}
+
+// RateLimitInfo describes the account rate-limit state reported by rate_limit_event
+type RateLimitInfo struct {
+	Status        string `json:"status"`
+	RateLimitType string `json:"rateLimitType,omitempty"`
+	ResetsAt      int64  `json:"resetsAt,omitempty"`
 }

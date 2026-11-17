@@ -156,9 +156,9 @@ func processStream(r *os.File, cfg *display.Config) {
 			continue
 		}
 
-		// Skip duplicate result messages that contain the same content as the last assistant message
+		// Result text usually repeats the last assistant message; drop the text but keep the stats
 		if msg.Type == "result" && msg.Result != "" && msg.Result == lastAssistantContent {
-			continue
+			msg.Result = ""
 		}
 
 		// Track assistant message content for duplicate detection

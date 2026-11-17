@@ -2,6 +2,7 @@ package display
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -47,6 +48,13 @@ var (
 
 // DisplayMessage routes to the appropriate formatter based on style
 func DisplayMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
+	if !cfg.Verbose && isRoutineEvent(msg) {
+		return
+	}
+	if msg.Type == "rate_limit_event" {
+		displayRateLimit(msg, lineNum, cfg)
+		return
+	}
 	switch cfg.Style {
 	case StyleCompact:
 		displayMessageCompact(msg, lineNum, cfg)
@@ -57,6 +65,61 @@ func DisplayMessage(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	default: // StyleDefault
 		displayMessageDefault(msg, lineNum, cfg)
 	}
+}
+
+// isRoutineEvent reports bookkeeping events that carry no news unless something went wrong:
+// hook start/success notices and rate-limit updates that are still "allowed".
+func isRoutineEvent(msg *parser.StreamMessage) bool {
+	switch msg.Type {
+	case "rate_limit_event":
+		return msg.RateLimitInfo == nil || msg.RateLimitInfo.Status == "allowed"
+	case "system":
+		return msg.Subtype == "hook_started" || (msg.Subtype == "hook_response" && msg.Outcome == "success")
+	}
+	return false
+}
+
+func displayRateLimit(msg *parser.StreamMessage, lineNum int, cfg *Config) {
+	line := "RATE LIMIT"
+	if info := msg.RateLimitInfo; info != nil {
+		line += fmt.Sprintf(" [%s]", info.Status)
+		if info.RateLimitType != "" {
+			line += " " + info.RateLimitType
+		}
+		if info.ResetsAt > 0 {
+			line += " resets " + time.Unix(info.ResetsAt, 0).Local().Format("Jan 2 15:04")
+		}
+	}
+	suffix := FormatElapsed(cfg) + FormatLineNum(lineNum, cfg.ShowLineNum)
+	if cfg.Style == StylePlain {
+		fmt.Println(line + suffix)
+		return
+	}
+	BoldYellow.Print(line)
+	Gray.Println(suffix)
+}
+
+// hookSummary describes a hook event for system message headers, e.g.
+// " SessionStart:startup" or " Stop: error (exit 1)". Empty for non-hook messages.
+func hookSummary(msg *parser.StreamMessage) string {
+	if msg.HookName == "" {
+		return ""
+	}
+	s := " " + msg.HookName
+	if msg.Subtype == "hook_response" && msg.Outcome != "success" {
+		s += fmt.Sprintf(": %s (exit %d)", msg.Outcome, msg.ExitCode)
+	}
+	return s
+}
+
+// sortedModels returns modelUsage keys in stable order
+func sortedModels(modelUsage map[string]interface{}) []string {
+	models := make([]string, 0, len(modelUsage))
+	for model := range modelUsage {
+		models = append(models, model)
+	}
+	sort.Strings(models)
+	return models
 }
 
 // FormatLineNum returns a formatted line number string if showLineNum is enabled

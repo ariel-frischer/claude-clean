@@ -23,7 +23,7 @@ func displayMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 func displaySystemMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Config) {
 	fmt.Printf("SYSTEM")
 	if msg.Subtype != "" {
-		fmt.Printf(" [%s]", msg.Subtype)
+		fmt.Printf(" [%s]%s", msg.Subtype, hookSummary(msg))
 	}
 	fmt.Printf("%s%s\n", FormatElapsed(cfg), FormatLineNum(lineNum, cfg.ShowLineNum))
 
@@ -240,7 +240,8 @@ func displayResultMessagePlain(msg *parser.StreamMessage, lineNum int, cfg *Conf
 	if cfg.Verbose && msg.ModelUsage != nil && len(msg.ModelUsage) > 0 {
 		fmt.Println()
 		fmt.Println("  Model Usage:")
-		for model, usageData := range msg.ModelUsage {
+		for _, model := range sortedModels(msg.ModelUsage) {
+			usageData := msg.ModelUsage[model]
 			fmt.Printf("    %s:\n", model)
 			if usageMap, ok := usageData.(map[string]interface{}); ok {
 				if inputTokens, ok := usageMap["inputTokens"].(float64); ok {
