@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Result summary (turns, duration, cost, tokens) no longer hidden when its text repeats the last assistant message (#1)
+
+### Added
+
+- Hook events show the hook name; failed hooks and rate-limit rejections always shown
+- Rate-limit events rendered instead of 'Unknown message type'
+
+### Changed
+
+- Successful hook and allowed rate-limit events hidden unless -V
+- Per-model usage in -V sorted by model name
+- Go 1.26 and dependency updates; CI reads Go version from go.mod
+
 ## [0.2.1] - 2026-03-08
 
 ### Added

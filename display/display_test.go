@@ -525,3 +525,64 @@ func TestDisplayResultMessageDefault(t *testing.T) {
 		})
 	}
 }
+
+// TestDisplayMessageRoutineEvents checks that hook/rate-limit bookkeeping is hidden
+// unless verbose or something went wrong
+func TestDisplayMessageRoutineEvents(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	tests := []struct {
+		name    string
+		msg     *parser.StreamMessage
+		verbose bool
+		want    string // empty means no output
+	}{
+		{"hook started hidden", &parser.StreamMessage{Type: "system", Subtype: "hook_started", HookName: "SessionStart:startup"}, false, ""},
+		{"hook success hidden", &parser.StreamMessage{Type: "system", Subtype: "hook_response", HookName: "Stop", Outcome: "success"}, false, ""},
+		{"hook failure shown", &parser.StreamMessage{Type: "system", Subtype: "hook_response", HookName: "Stop", Outcome: "error", ExitCode: 2}, false, "[hook_response] Stop: error (exit 2)"},
+		{"hook started verbose", &parser.StreamMessage{Type: "system", Subtype: "hook_started", HookName: "SessionStart:startup"}, true, "[hook_started] SessionStart:startup"},
+		{"rate limit allowed hidden", &parser.StreamMessage{Type: "rate_limit_event", RateLimitInfo: &parser.RateLimitInfo{Status: "allowed"}}, false, ""},
+		{"rate limit rejected shown", &parser.StreamMessage{Type: "rate_limit_event", RateLimitInfo: &parser.RateLimitInfo{Status: "rejected", RateLimitType: "five_hour"}}, false, "RATE LIMIT [rejected] five_hour"},
+	}
+
+	for _, style := range []OutputStyle{StyleDefault, StyleCompact, StyleMinimal, StylePlain} {
+		for _, tt := range tests {
+			t.Run(string(style)+"/"+tt.name, func(t *testing.T) {
+				output := captureStdout(func() {
+					DisplayMessage(tt.msg, 1, &Config{Style: style, Verbose: tt.verbose})
+				})
+				if tt.want == "" && output != "" {
+					t.Errorf("expected no output, got:\n%s", output)
+				}
+				if tt.want != "" && !strings.Contains(output, tt.want) {
+					t.Errorf("output missing %q\nGot:\n%s", tt.want, output)
+				}
+			})
+		}
+	}
+}
+
+// TestDisplayResultModelCosts checks verbose per-model cost lines appear in stable order
+func TestDisplayResultModelCosts(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	msg := &parser.StreamMessage{
+		Type:         "result",
+		TotalCostUSD: 0.21,
+		ModelUsage: map[string]interface{}{
+			"claude-sonnet": map[string]interface{}{"costUSD": 0.1774},
+			"claude-haiku":  map[string]interface{}{"costUSD": 0.0335},
+		},
+	}
+	for _, style := range []OutputStyle{StyleDefault, StyleMinimal, StylePlain} {
+		output := captureStdout(func() {
+			DisplayMessage(msg, 1, &Config{Style: style, Verbose: true})
+		})
+		haiku, sonnet := strings.Index(output, "Cost: $0.0335"), strings.Index(output, "Cost: $0.1774")
+		if haiku < 0 || sonnet < 0 || haiku > sonnet {
+			t.Errorf("%s: per-model costs missing or unordered\nGot:\n%s", style, output)
+		}
+	}
+}

@@ -1,14 +1,23 @@
 project: claude-clean
 versions:
-    unreleased: {}
+    unreleased:
+        fixed:
+            - Result summary (turns, duration, cost, tokens) no longer hidden when its text repeats the last assistant message (#1)
+        added:
+            - Hook events show the hook name; failed hooks and rate-limit rejections always shown
+            - Rate-limit events rendered instead of 'Unknown message type'
+        changed:
+            - Successful hook and allowed rate-limit events hidden unless -V
+            - Per-model usage in -V sorted by model name
+            - Go 1.26 and dependency updates; CI reads Go version from go.mod
     0.2.1:
-        date: "2026-03-08"
+        date: 2026-03-08
         added:
             - Elapsed timestamps per message with -t flag
         changed:
             - Updated README with output style examples and new command options
     0.2.0:
-        date: "2025-12-20"
+        date: 2025-12-20
         added:
             - Multiple display styles (compact, default, minimal, plain)
             - Message parsing with system reminder stripping
@@ -23,12 +32,12 @@ versions:
         removed:
             - Obsolete autospec scripts and project restructuring specs
     0.1.4:
-        date: "2025-12-15"
+        date: 2025-12-15
         fixed:
             - Use browser_download_url from API instead of constructing URL
             - Download tar.gz archives instead of standalone binaries
     0.1.3:
-        date: "2025-12-15"
+        date: 2025-12-15
         added:
             - Uninstall target in Makefile
             - Uninstall instructions in documentation
@@ -37,7 +46,7 @@ versions:
         fixed:
             - goreleaser archives syntax and configuration
     0.1.2:
-        date: "2025-12-14"
+        date: 2025-12-14
         added:
             - Compact, default, minimal, and plain display styles
             - Display function tests
@@ -45,7 +54,7 @@ versions:
             - Renamed binary from claude-clean to cclean
             - Updated all documentation references for new binary name
     0.1.1:
-        date: "2025-12-14"
+        date: 2025-12-14
         added:
             - Git hooks (pre-merge-commit, pre-rebase, post-rewrite)
             - CONTRIBUTING.md and development documentation
@@ -54,7 +63,7 @@ versions:
         removed:
             - Outdated CONTRIBUTING.md and setup-hooks.sh
     0.1.0:
-        date: "2025-12-14"
+        date: 2025-12-14
         added:
             - Initial release of claude-clean (cclean)
             - JSONL stream parser for Claude Code stream-json output
