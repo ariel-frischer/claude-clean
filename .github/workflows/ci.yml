@@ -41,6 +41,17 @@ jobs:
     - name: Test
       run: go test -v -race -coverprofile=coverage.out ./...
 
+    - name: Changelog in sync
+      run: |
+        go install github.com/ariel-frischer/chlog/cmd/chlog@v0.3.1
+        chlog validate && chlog check
+
+    - name: GoReleaser config
+      uses: goreleaser/goreleaser-action@v6
+      with:
+        version: '~> v2'
+        args: check
+
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:

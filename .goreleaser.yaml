@@ -33,6 +33,10 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 
+release:
+  # Lets a workflow_dispatch re-run replace assets of an existing release
+  replace_existing_artifacts: true
+
 changelog:
   disable: true
 
