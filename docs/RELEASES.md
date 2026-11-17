@@ -1,119 +1,56 @@
 # Release Process
 
-This project supports releasing to both GitHub and GitLab with automatic platform detection.
+Remotes: `gh` = GitHub (releases, CI), `origin` = GitLab (mirror, no pipelines).
+Releases are published by GitHub Actions (`.github/workflows/release.yml`) when a `v*` tag reaches GitHub.
+Release notes come from `CHANGELOG.yaml` via [chlog](https://github.com/ariel-frischer/chlog).
 
-## Overview
-
-Releases are triggered by git tags matching the `v*` pattern (e.g., `v1.0.0`). The release system:
-
-1. Detects your git remote (GitHub or GitLab)
-2. Creates and pushes a git tag
-3. Builds cross-platform binaries via GoReleaser or GitHub Actions
-4. Publishes the release with artifacts and checksums
-
-## GitHub Releases
-
-### Automated (CI)
-
-When a tag is pushed, GitHub Actions (`.github/workflows/release.yml`) automatically:
-
-- Runs tests
-- Builds binaries for multiple platforms:
-  - Linux (amd64, arm64)
-  - macOS (amd64, arm64/Apple Silicon)
-  - Windows (amd64)
-- Generates SHA256 checksums
-- Creates a GitHub Release with auto-generated release notes
-
-### Manual (Local)
-
-Use the Makefile targets for local releases:
+## Steps
 
 ```bash
-# Auto-detects GitHub from remote
-make patch   # Bump v0.0.X
-make minor   # Bump v0.X.0
-make major   # Bump vX.0.0
+# 1. Promote unreleased changelog entries and commit
+chlog release 0.4.0 && chlog sync && chlog check
+git add CHANGELOG.yaml CHANGELOG.md
+git commit -m "chore(release): v0.4.0"
+git push gh main && git push origin main
 
-# Or specify exact version
-make release VERSION=v1.2.3
+# 2. Tag; pushing the tag to GitHub triggers the release workflow
+git tag -a v0.4.0 -m "Release v0.4.0"
+git push gh v0.4.0 && git push origin v0.4.0
 
-# Force GitHub platform
-make patch PLATFORM=github
+# 3. Verify
+gh run watch "$(gh run list -L 1 --workflow Release --json databaseId -q '.[0].databaseId')" --exit-status
+gh release view v0.4.0 --json body,assets -q '"assets=\(.assets|length) body=\(.body|length)"'
 ```
 
-Local releases use GoReleaser (`.goreleaser.yaml`) which:
-- Builds optimized binaries with `-s -w` ldflags
-- Embeds version info via ldflags
-- Creates tar.gz archives (zip for Windows)
-- Generates checksums
-- Publishes to GitHub Releases
-
-## GitLab Releases
-
-### Manual (Local)
-
-```bash
-# Auto-detects GitLab from remote
-make patch
-
-# Force GitLab platform
-make patch PLATFORM=gitlab
-```
-
-The Makefile handles token management:
-- GitHub: Uses `gh auth token` and unsets `GITLAB_TOKEN`
-- GitLab: Uses `GITLAB_TOKEN` env var and unsets `GITHUB_TOKEN`
-
-## Platform Detection
-
-The Makefile auto-detects your platform from the git remote URL:
-
-```makefile
-REMOTE_URL := $(shell git remote get-url origin)
-DETECTED_PLATFORM := $(shell echo $(REMOTE_URL) | grep -q github && echo github || ...)
-```
-
-Override with `PLATFORM=github` or `PLATFORM=gitlab` if needed.
-
-## Release Artifacts
-
-Each release includes:
-
-| File | Description |
-|------|-------------|
-| `cclean-linux-amd64` | Linux x86_64 binary |
-| `cclean-linux-arm64` | Linux ARM64 binary |
-| `cclean-darwin-amd64` | macOS Intel binary |
-| `cclean-darwin-arm64` | macOS Apple Silicon binary |
-| `cclean-windows-amd64.exe` | Windows x86_64 binary |
-| `SHA256SUMS` / `checksums.txt` | SHA256 checksums |
+A good release has 7 assets (`cclean_<ver>_{linux,darwin,windows}_{amd64,arm64}` archives, zip on
+Windows, plus `checksums.txt`) and a non-empty body matching `chlog extract <ver>`.
 
 ## Workflow
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  make patch │ ──▶ │  git tag    │ ──▶ │  git push   │
-└─────────────┘     │  -a vX.Y.Z  │     │  origin tag │
-                    └─────────────┘     └─────────────┘
-                                               │
-                    ┌──────────────────────────┘
-                    ▼
-         ┌─────────────────────┐
-         │  GitHub Actions OR  │
-         │  GoReleaser (local) │
-         └─────────────────────┘
-                    │
-                    ▼
-         ┌─────────────────────┐
-         │  Build binaries     │
-         │  Generate checksums │
-         │  Create release     │
-         └─────────────────────┘
+The release job checks out the tag, runs tests, installs chlog (pinned, `cmd/chlog`), runs
+`chlog extract <ver> > /tmp/release-notes.md`, then `goreleaser release --release-notes`.
+CI (`ci.yml`) runs `chlog validate`, `chlog check` and `goreleaser check` on every push, so release
+tooling breakage shows up before tagging.
+
+## When a release run fails
+
+Fix the cause on `main`, then re-run the workflow for the existing tag:
+
+```bash
+gh workflow run Release --ref main -f tag=v0.4.0
 ```
 
-## Prerequisites
+The re-run uses the workflow file from `main` but the source and `.goreleaser.yaml` from the tag.
+`release.replace_existing_artifacts` lets it overwrite assets of a partially published release.
+Don't move or re-create a pushed tag: the Go module proxy may already have cached it.
 
-- **GitHub**: `gh` CLI authenticated (`gh auth login`)
-- **GitLab**: `GITLAB_TOKEN` environment variable set
-- **Local releases**: GoReleaser installed (`go install github.com/goreleaser/goreleaser@latest`)
+If notes are missing on an otherwise good release:
+`chlog extract 0.4.0 > /tmp/n.md && gh release edit v0.4.0 --notes-file /tmp/n.md`.
+
+## Gotchas
+
+- `chlog` is installed from `github.com/ariel-frischer/chlog/cmd/chlog`; the module root has no main package.
+- Never set `changelog.disable: true` in `.goreleaser.yaml`: it skips goreleaser's changelog step,
+  which also discards `--release-notes`, and the release publishes with an empty body (v0.3.0).
+- `make patch` / `make release` tag and push to `origin` (GitLab) and run goreleaser locally. Use them only
+  as a fallback when Actions is unavailable, and never together with a tag pushed to `gh` (both would publish).

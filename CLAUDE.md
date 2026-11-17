@@ -24,6 +24,14 @@ Run a single test:
 go test -v -run TestFunctionName ./...
 ```
 
+## Releasing
+
+Follow `docs/RELEASES.md`: `chlog release X.Y.Z` → commit → push tag to `gh` (GitHub Actions publishes) → verify 7 assets and a non-empty release body. Failed run: fix on main, then `gh workflow run Release --ref main -f tag=vX.Y.Z`; never move a pushed tag. Never set `changelog.disable` in `.goreleaser.yaml` (it drops the chlog notes). Don't use `make patch` alongside a GitHub tag push.
+
+## Stream format drift
+
+Claude Code adds new stream-json events over time. To check coverage, capture a real stream (`claude -p --output-format stream-json --verbose --include-partial-messages "<prompt using a subagent and tools>" > /tmp/s.jsonl`) and look for `Unknown message type`, empty `SYSTEM [...]` boxes, or `map[` dumps in `cclean /tmp/s.jsonl`. Bookkeeping events go in `isRoutineEvent` (`display/display.go`); summaries in `systemSummary`.
+
 ## Architecture
 
 The codebase follows standard Go project layout with public packages:
