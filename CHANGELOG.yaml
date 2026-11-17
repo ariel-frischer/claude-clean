@@ -1,6 +1,8 @@
 project: claude-clean
 versions:
-    unreleased:
+    unreleased: {}
+    0.3.0:
+        date: 2026-11-16
         fixed:
             - Result summary (turns, duration, cost, tokens) no longer hidden when its text repeats the last assistant message (#1)
             - Tool results with content blocks (subagent reports, images, loaded tools) shown as text instead of Go map dumps
